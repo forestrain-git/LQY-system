@@ -32,12 +32,34 @@ services:
       timeout: 5s
       retries: 5
 
+  emqx:
+    image: emqx/emqx:5.5.0
+    container_name: lqy_emqx
+    environment:
+      EMQX_NODE_NAME: emqx@node1
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: static
+      EMQX_CLUSTER__STATIC__SEEDS: "[emqx@node1]"
+    ports:
+      - "1883:1883"    # MQTT端口
+      - "8083:8083"    # MQTT over WebSocket
+      - "18083:18083"  # EMQX Dashboard
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    healthcheck:
+      test: ["CMD", "emqx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: .
     container_name: lqy_backend
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/lqy_db
       REDIS_URL: redis://redis:6379/0
+      MQTT_BROKER: emqx
+      MQTT_PORT: 1883
       LOG_LEVEL: info
       PYTHONUNBUFFERED: "1"
     ports:
@@ -47,6 +69,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      emqx:
+        condition: service_healthy
     volumes:
       - ./app:/app/app
     restart: unless-stopped
@@ -54,3 +78,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  emqx_data:
+  emqx_log:
