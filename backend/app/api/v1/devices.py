@@ -275,10 +275,9 @@ async def get_device_stats(
             detail="设备不存在",
         )
 
-    # 今日时间范围
-    today = date.today()
-    today_start = datetime.combine(today, time.min, tzinfo=timezone.utc)
-    today_end = datetime.combine(today, time.max, tzinfo=timezone.utc)
+    # 今日时间范围 (UTC)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59, microsecond=999999)
 
     # 查询统计
     stats_result = await session.execute(

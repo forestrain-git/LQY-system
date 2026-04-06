@@ -137,8 +137,8 @@ async def export_sensor_data(
 
     output.seek(0)
 
-    # 返回文件流
-    filename = f"sensor_data_{device.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    # 返回文件流（使用英文文件名避免编码问题）
+    filename = f"sensor_data_device{device.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
     return StreamingResponse(
         io.BytesIO(output.getvalue().encode("utf-8-sig")),
