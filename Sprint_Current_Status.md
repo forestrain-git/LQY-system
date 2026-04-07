@@ -4,41 +4,33 @@
 
 | 字段 | 值 |
 |------|-----|
-| **当前阶段** | Hour 2-4: 完成，等待子Agent审查 |
+| **当前阶段** | Hour 4-6: 智慧调度核心 + 设计系统 |
 | **当前小时** | 4.0 |
 | **开始时间** | 2026-04-07 16:30 |
-| **本阶段结束** | 22:00 |
-| **Git提交** | 6d8e54a |
+| **本阶段结束** | 次日 01:00 |
+| **Git提交** | 238b70a |
 
 ---
 
-## Hour 2-4 完成总结
+## Hour 2-4 审查完成
 
-### ✅ 已完成任务
+### ✅ 已修复问题
 
-| 子任务 | 状态 | 文件 |
-|--------|------|------|
-| Vehicle模型 | ✅ | `app/modules/dispatch/models.py` |
-| Berth模型 | ✅ | `app/modules/dispatch/models.py` |
-| Schedule模型 | ✅ | `app/modules/dispatch/models.py` |
-| Staff模型 | ✅ | `app/modules/workflow/models.py` |
-| Department模型 | ✅ | `app/modules/workflow/models.py` |
-| WorkOrder模型 | ✅ | `app/modules/workflow/models.py` |
-| WorkOrderTask模型 | ✅ | `app/modules/workflow/models.py` |
-| Mock数据生成器 | ✅ | `app/mocks/data_generator.py` |
-| Alembic迁移脚本 | ✅ | `alembic/versions/*` |
+| 问题 | 优先级 | 状态 |
+|------|--------|------|
+| 迁移脚本引用 devices 表 | 🔴 高 | ✅ 已修复 |
+| Workflow 模型 Device 外键 | 🔴 高 | ✅ 已修复 |
+| 单位不一致 (kg/tons) | 🟡 中 | ⏸️ 后续处理 |
 
 ---
 
-## 代码统计 (Hour 2-4)
+## Hour 4-6 目标
 
-| 指标 | 数值 |
-|------|------|
-| 新增文件 | 6个 |
-| 新增代码行 | ~1,646行 |
-| 数据模型 | 7个 |
-| Mock数据 | 20车/8泊位/50人/30工单 |
-| Git提交 | 6d8e54a |
+| 模块 | 内容 | 预估代码量 |
+|------|------|-----------|
+| 🚛 智慧调度 | 排队算法、泊位分配、路径优化 | ~800行 |
+| 🎨 设计系统 | 主题配置、组件规范、Tailwind扩展 | ~400行 |
+| 🔌 硬件集成 | GPS/工牌/地磅模拟器与业务模型连接 | ~300行 |
 
 ---
 
@@ -57,16 +49,10 @@
 | 阶段 | 债务项 | 优先级 |
 |------|--------|--------|
 | hour_0_2 | 预测算法使用统计方法 | 低 |
-| hour_0_2 | Mock数据生成器简化规则 | 低 |
+| hour_2_4 | equipment_id 外键待恢复 | 中 |
+| hour_2_4 | 重量单位统一 (kg vs tons) | 低 |
 
 ---
 
-## 下一步
-
-**当前**: 召唤子Agent进行Hour 2-4代码审查
-**审查后**: Hour 4-6 智慧调度 + 设计系统 + ⏸️用户确认
-
----
-
-**最后更新**: 2026-04-07 22:00
-**状态**: Hour 2-4 完成，等待审查
+**最后更新**: 2026-04-07 22:15
+**状态**: Hour 4-6 进行中

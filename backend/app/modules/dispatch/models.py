@@ -461,3 +461,116 @@ class Schedule(SQLModel, table=True):
                 "status": "appointment",
             }
         }
+
+
+# ============== Pydantic Schemas for API ==============
+
+class VehicleCreate(SQLModel):
+    """车辆创建Schema / Vehicle create schema"""
+    license_plate: str
+    vehicle_type: VehicleType = VehicleType.DOMESTIC
+    brand: str | None = None
+    model: str | None = None
+    max_capacity: float = 5.0
+    current_load: float = 0.0
+    status: VehicleStatus = VehicleStatus.IDLE
+    gps_latitude: float | None = None
+    gps_longitude: float | None = None
+    total_mileage: float = 0.0
+    engine_hours: float = 0.0
+
+
+class VehicleRead(SQLModel):
+    """车辆读取Schema / Vehicle read schema"""
+    id: int
+    license_plate: str
+    vehicle_type: VehicleType
+    brand: str | None
+    model: str | None
+    max_capacity: float
+    current_load: float
+    status: VehicleStatus
+    gps_latitude: float | None
+    gps_longitude: float | None
+    total_mileage: float
+    engine_hours: float
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class VehicleUpdate(SQLModel):
+    """车辆更新Schema / Vehicle update schema"""
+    vehicle_type: VehicleType | None = None
+    brand: str | None = None
+    model: str | None = None
+    max_capacity: float | None = None
+    current_load: float | None = None
+    status: VehicleStatus | None = None
+    gps_latitude: float | None = None
+    gps_longitude: float | None = None
+    total_mileage: float | None = None
+    engine_hours: float | None = None
+
+
+class BerthRead(SQLModel):
+    """泊位读取Schema / Berth read schema"""
+    id: int
+    code: str
+    name: str
+    berth_type: BerthType
+    location_x: float | None
+    location_y: float | None
+    capacity_tons: float
+    status: BerthStatus
+    current_vehicle_id: int | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ScheduleCreate(SQLModel):
+    """调度创建Schema / Schedule create schema"""
+    vehicle_id: int
+    appointment_time: datetime
+    expected_waste_type: str = "domestic"
+    expected_weight: float | None = None
+
+
+class ScheduleRead(SQLModel):
+    """调度读取Schema / Schedule read schema"""
+    id: int
+    vehicle_id: int
+    berth_id: int | None
+    appointment_time: datetime
+    expected_waste_type: str
+    expected_weight: float | None
+    queue_number: int | None
+    queue_entered_at: datetime | None
+    checked_in_at: datetime | None
+    unloading_started_at: datetime | None
+    unloading_completed_at: datetime | None
+    completed_at: datetime | None
+    gross_weight: float | None
+    tare_weight: float | None
+    net_weight: float | None
+    status: ScheduleStatus
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ScheduleUpdate(SQLModel):
+    """调度更新Schema / Schedule update schema"""
+    berth_id: int | None = None
+    expected_waste_type: str | None = None
+    expected_weight: float | None = None
+    status: ScheduleStatus | None = None
+    notes: str | None = None

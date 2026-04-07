@@ -16,6 +16,7 @@ from app.api.v1 import (
     predictions_router,
     sensor_data_router,
 )
+from app.modules.dispatch.api import router as dispatch_router
 from app.api.websocket import manager, router as websocket_router
 from app.config import settings
 from app.database import close_db
@@ -129,6 +130,7 @@ app.include_router(sensor_data_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")
 app.include_router(alert_rules_router, prefix="/api/v1")
 app.include_router(predictions_router, prefix="/api/v1")
+app.include_router(dispatch_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 
