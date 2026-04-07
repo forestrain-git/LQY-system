@@ -1,0 +1,497 @@
+/* CSS 变量定义 - GitHub Dark 主题 */
+:root {
+  /* 主色调 - GitHub Dark 蓝 */
+  --color-primary: #58a6ff;
+  --color-secondary: #8957e5;
+  --color-accent: #f0883e;
+  --color-warning: #d29922;
+  --color-success: #238636;
+  --color-danger: #da3633;
+
+  /* 背景色 */
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #161b22;
+  --bg-hover: #21262d;
+
+  /* 文字色 */
+  --text-primary: #c9d1d9;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+
+  /* 边框 */
+  --border-color: #30363d;
+  --divider: #21262d;
+}
+
+/* 强制可见样式 - 用于调试 */
+html, body {
+  background: #0d1117 !important;
+  color: #c9d1d9 !important;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  background: #0d1117 !important;
+  color: #c9d1d9 !important;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+}
+
+/* 让所有文字可见 */
+* {
+  color: #c9d1d9;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, div {
+  color: #c9d1d9 !important;
+}
+
+/* 链接颜色 */
+a {
+  color: #58a6ff !important;
+}
+
+/* 按钮文字 */
+button, .el-button {
+  color: #c9d1d9 !important;
+}
+
+/* Element Plus 按钮样式覆盖 - GitHub Dark */
+.el-button--primary {
+  background-color: #238636 !important;
+  border-color: #238636 !important;
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+.el-button--primary:hover {
+  background-color: #2ea043 !important;
+  border-color: #2ea043 !important;
+}
+
+.el-button--default {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.el-button--default:hover {
+  background-color: #30363d !important;
+  border-color: #8b949e !important;
+  color: #c9d1d9 !important;
+}
+
+.el-button.is-link {
+  color: #58a6ff !important;
+}
+
+.el-button.is-link:hover {
+  color: #79c0ff !important;
+}
+
+.el-button--success {
+  background-color: #238636 !important;
+  border-color: #238636 !important;
+  color: #ffffff !important;
+}
+
+.el-button--danger {
+  background-color: #da3633 !important;
+  border-color: #da3633 !important;
+  color: #ffffff !important;
+}
+
+.el-button--danger.is-link {
+  color: #f85149 !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+/* 菜单文字 */
+.el-menu-item {
+  color: #8b949e !important;
+}
+
+.el-menu-item.is-active {
+  color: #58a6ff !important;
+}
+
+/* 表格样式 */
+.data-table th,
+.data-table td {
+  color: #c9d1d9 !important;
+  border-color: #30363d !important;
+}
+
+.data-table th {
+  background-color: #161b22 !important;
+  color: #8b949e !important;
+}
+
+/* 卡片样式 */
+.stat-item {
+  background-color: #161b22 !important;
+  border-color: #30363d !important;
+}
+
+.stat-value.online { color: #3fb950 !important; }
+.stat-value.offline { color: #f85149 !important; }
+.stat-value.warning { color: #d29922 !important; }
+
+/* 输入框样式 */
+.el-input__wrapper {
+  background-color: #0d1117 !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.el-input__inner {
+  color: #c9d1d9 !important;
+}
+
+/* 下拉菜单 */
+.el-dropdown-menu {
+  background-color: #161b22 !important;
+  border-color: #30363d !important;
+}
+
+.el-dropdown-item {
+  color: #c9d1d9 !important;
+}
+
+.el-dropdown-item:hover {
+  background-color: #21262d !important;
+}
+
+/* 超强力分页覆盖 - 使用属性选择器 */
+[class*="pagination"],
+[class*="Pagination"] {
+  background-color: transparent !important;
+}
+
+.el-pagination,
+.el-pagination__pager,
+.el-pager,
+.el-pagination__sizes,
+.el-pagination__jump,
+.el-pagination__total {
+  background-color: transparent !important;
+}
+
+/* 分页按钮 - 数字和箭头 */
+.el-pagination li,
+.el-pager li,
+.el-pagination button,
+.el-pagination .btn-prev,
+.el-pagination .btn-next,
+.el-pagination__jump button,
+.el-pagination__jump input,
+.el-pager li.number,
+.el-pager li.more {
+  background-color: #21262d !important;
+  border: 1px solid #30363d !important;
+  color: #c9d1d9 !important;
+  font-weight: 500 !important;
+}
+
+/* 分页按钮悬停 */
+.el-pagination li:hover,
+.el-pager li:hover,
+.el-pagination button:hover,
+.el-pagination .btn-prev:hover,
+.el-pagination .btn-next:hover {
+  background-color: #30363d !important;
+  color: #58a6ff !important;
+}
+
+/* 当前页按钮 */
+.el-pagination li.active,
+.el-pager li.active,
+.el-pagination li.is-active,
+.el-pager li.is-active,
+.el-pager li.number.active {
+  background-color: #58a6ff !important;
+  border-color: #58a6ff !important;
+  color: #ffffff !important;
+}
+
+/* 分页输入框 */
+.el-pagination__editor {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+/* 分页选择器 */
+.el-pagination__sizes .el-input__inner {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+/* 分页文字 */
+.el-pagination__total,
+.el-pagination__jump {
+  color: #8b949e !important;
+}
+
+/* 强制按钮背景 - 超强力覆盖 */
+.el-button,
+button.el-button,
+[class*="el-button"],
+.el-button.is-link,
+.el-button--text,
+button {
+  background-color: #21262d !important;
+  border: 1px solid #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+/* 链接按钮也需要背景 */
+.el-button.is-link,
+.el-button--text {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #58a6ff !important;
+}
+
+.el-button.is-link:hover {
+  color: #79c0ff !important;
+  background-color: rgba(88, 166, 255, 0.1) !important;
+}
+
+.el-button--primary {
+  background-color: #238636 !important;
+  border-color: #238636 !important;
+  color: #ffffff !important;
+}
+
+.el-button--primary:hover {
+  background-color: #2ea043 !important;
+  border-color: #2ea043 !important;
+}
+
+.el-button--default {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.el-button--default:hover {
+  background-color: #30363d !important;
+  border-color: #8b949e !important;
+}
+
+/* 超强力表格覆盖 */
+.el-table,
+.el-table__header,
+.el-table__body,
+.el-table__footer,
+.el-table__header-wrapper,
+.el-table__body-wrapper,
+.el-table__footer-wrapper,
+.el-table__inner-wrapper,
+.el-table__border-left-patch,
+.el-table__border-right-patch {
+  background-color: #161b22 !important;
+}
+
+.el-table tr,
+.el-table th,
+.el-table td,
+.el-table .el-table__cell,
+.el-table .cell,
+.el-table th .cell,
+.el-table td .cell {
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
+  border-color: #30363d !important;
+}
+
+.el-table th.el-table__cell {
+  background-color: #0d1117 !important;
+  color: #8b949e !important;
+}
+
+/* 修复白色背景问题 */
+*[style*="background: rgb(255, 255, 255)"],
+*[style*="background-color: rgb(255, 255, 255)"],
+*[style*="background: white"],
+*[style*="background-color: white"] {
+  background-color: #161b22 !important;
+}
+
+/* 表格样式 - Element Plus - 超强力覆盖 */
+.el-table,
+.el-table__header-wrapper,
+.el-table__body-wrapper {
+  background-color: #161b22 !important;
+}
+
+.el-table th,
+.el-table td,
+.el-table__cell {
+  background-color: #161b22 !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.el-table th.el-table__cell {
+  background-color: #0d1117 !important;
+  color: #8b949e !important;
+  font-weight: 600;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td,
+.el-table--striped .el-table__body tr.el-table__row--striped .el-table__cell {
+  background-color: #0d1117 !important;
+}
+
+.el-table--enable-row-hover .el-table__body tr:hover > td,
+.el-table--enable-row-hover .el-table__body tr:hover > .el-table__cell {
+  background-color: #21262d !important;
+}
+
+/* 修复表格文字 */
+.el-table .cell {
+  color: #c9d1d9 !important;
+}
+
+.el-table th .cell {
+  color: #8b949e !important;
+}
+
+/* 单选按钮组 */
+.el-radio-button__inner {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.el-radio-button__original-radio:checked + .el-radio-button__inner {
+  background-color: #58a6ff !important;
+  border-color: #58a6ff !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* 标签样式 */
+.el-tag {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.el-tag--success {
+  background-color: rgba(35, 134, 54, 0.2) !important;
+  border-color: #238636 !important;
+  color: #3fb950 !important;
+}
+
+.el-tag--warning {
+  background-color: rgba(210, 153, 34, 0.2) !important;
+  border-color: #d29922 !important;
+  color: #e3b341 !important;
+}
+
+.el-tag--danger {
+  background-color: rgba(218, 54, 51, 0.2) !important;
+  border-color: #da3633 !important;
+  color: #f85149 !important;
+}
+
+.el-tag--info {
+  background-color: rgba(139, 148, 158, 0.2) !important;
+  border-color: #8b949e !important;
+  color: #b1bac4 !important;
+}
+
+/* 对话框 */
+.el-dialog {
+  background-color: #161b22 !important;
+  border: 1px solid #30363d !important;
+}
+
+.el-dialog__title {
+  color: #c9d1d9 !important;
+}
+
+.el-dialog__body {
+  color: #8b949e !important;
+}
+
+/* 表单 */
+.el-form-item__label {
+  color: #c9d1d9 !important;
+}
+
+/* 全局表格样式 - 确保所有页面表格都是深色背景 */
+.table-container,
+.data-table,
+table.data-table {
+  background-color: #161b22 !important;
+  border: 1px solid #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+.data-table th,
+.data-table td,
+table.data-table th,
+table.data-table td {
+  background-color: #161b22 !important;
+  border-bottom: 1px solid #30363d !important;
+  color: #c9d1d9 !important;
+  padding: 16px !important;
+}
+
+.data-table th {
+  background-color: #0d1117 !important;
+  color: #8b949e !important;
+  font-weight: 600 !important;
+}
+
+.data-table tbody tr:hover td {
+  background-color: #21262d !important;
+}
+
+/* 表格中的按钮样式 */
+.data-table .el-button,
+.data-table .el-button.is-link,
+table.data-table .el-button {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #58a6ff !important;
+}
+
+.data-table .el-button:hover {
+  background-color: rgba(88, 166, 255, 0.1) !important;
+  color: #79c0ff !important;
+}
+
+/* 成功按钮（解决） */
+.data-table .el-button--success,
+.data-table .el-button--success.is-link {
+  color: #3fb950 !important;
+  background-color: transparent !important;
+}
+
+.data-table .el-button--success:hover {
+  background-color: rgba(35, 134, 54, 0.1) !important;
+  color: #56d364 !important;
+}
+
+/* 危险按钮（删除） */
+.data-table .el-button--danger,
+.data-table .el-button--danger.is-link {
+  color: #f85149 !important;
+  background-color: transparent !important;
+}
+
+.data-table .el-button--danger:hover {
+  background-color: rgba(218, 54, 51, 0.1) !important;
+  color: #fa7b72 !important;
+}

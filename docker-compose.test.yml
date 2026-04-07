@@ -1,0 +1,108 @@
+# Day6 集成测试环境
+# 一键启动完整测试环境
+
+version: '3.8'
+
+services:
+  # PostgreSQL 测试数据库
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: lqy-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sanitation_test
+    ports:
+      - "5433:5432"  # 使用5433避免与开发环境冲突
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis 测试缓存
+  redis-test:
+    image: redis:7-alpine
+    container_name: lqy-redis-test
+    ports:
+      - "6380:6379"  # 使用6380避免与开发环境冲突
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # EMQX MQTT Broker (测试环境)
+  emqx-test:
+    image: emqx/emqx:5.4.0
+    container_name: lqy-emqx-test
+    environment:
+      - EMQX_NODE_NAME=emqx@127.0.0.1
+      - EMQX_NODE_COOKIE=emqxsecretcookie
+    ports:
+      - "1884:1883"    # MQTT端口（使用1884避免冲突）
+      - "8084:8083"    # MQTT WebSocket
+      - "18084:18083"  # Dashboard（使用18084避免冲突）
+    volumes:
+      - emqx_test_data:/opt/emqx/data
+    healthcheck:
+      test: ["CMD", "emqx_ctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 后端服务 (测试模式)
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lqy-backend-test
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres-test:5432/sanitation_test
+      - REDIS_URL=redis://redis-test:6379/1
+      - MQTT_BROKER=emqx-test
+      - MQTT_PORT=1883
+      - LOG_LEVEL=INFO
+    ports:
+      - "8001:8000"    # 使用8001避免与开发环境冲突
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      emqx-test:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo '等待数据库就绪...' &&
+        sleep 5 &&
+        echo '启动后端服务...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # 前端服务 (测试模式)
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lqy-frontend-test
+    ports:
+      - "8080:80"      # 使用8080避免与开发环境冲突
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8001
+      - VITE_WS_URL=ws://localhost:8001/ws
+    depends_on:
+      - backend-test
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+  emqx_test_data:
+
+networks:
+  default:
+    name: lqy-test-network
