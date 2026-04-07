@@ -109,12 +109,27 @@ class ConnectionManager:
             # 创建发布/订阅客户端
             pubsub = redis.pubsub()
             await pubsub.psubscribe("device:*:data")
-            logger.info("WebSocket已订阅Redis频道: device:*:data")
+            await pubsub.subscribe("alerts:new")
+            logger.info("WebSocket已订阅Redis频道: device:*:data, alerts:new")
 
             async for message in pubsub.listen():
-                if message["type"] == "pmessage":
+                if message["type"] in ["pmessage", "message"]:
                     try:
+                        channel = message["channel"]
                         data = json.loads(message["data"])
+
+                        # 处理告警通知
+                        if channel == "alerts:new":
+                            ws_message = {
+                                "type": "new_alert",
+                                "timestamp": data.get("timestamp"),
+                                "data": data.get("data", {})
+                            }
+                            # 广播给所有连接
+                            await self.broadcast_all(ws_message)
+                            continue
+
+                        # 处理传感器数据
                         device_id = data.get("device_id")
 
                         # 构建WebSocket消息

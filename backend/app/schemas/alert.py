@@ -43,3 +43,4 @@ class AlertResponse(AlertBase):
     acknowledged_at: datetime | None = Field(default=None, description="确认时间")
     resolved_at: datetime | None = Field(default=None, description="解决时间")
     device_name: str = Field(..., description="设备名称")
+    duration_seconds: int | None = Field(default=None, description="持续时间(秒)，从创建到现在或解决时间")

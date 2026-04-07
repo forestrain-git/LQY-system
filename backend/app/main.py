@@ -9,14 +9,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import devices_router, sensor_data_router
+from app.api.v1 import alert_rules_router, alerts_router, devices_router, sensor_data_router
 from app.api.websocket import manager, router as websocket_router
 from app.config import settings
 from app.database import close_db
 from app.exceptions.handlers import register_exception_handlers
 from app.middleware.logging import LoggingMiddleware
 from app.redis import close_redis, init_redis
-from app.services.mqtt_service import mqtt_service
+from app.services import alert_detection_service, mqtt_service
 
 # 配置日志
 logging.basicConfig(
@@ -67,6 +67,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"WebSocket监听器启动失败: {e}")
 
+    # 启动告警检测服务
+    try:
+        await alert_detection_service.start()
+    except Exception as e:
+        logger.warning(f"告警检测服务启动失败: {e}")
+
     yield
 
     # 关闭
@@ -77,6 +83,12 @@ async def lifespan(app: FastAPI):
         await mqtt_service.stop()
     except Exception as e:
         logger.error(f"停止MQTT服务失败: {e}")
+
+    # 停止告警检测服务
+    try:
+        await alert_detection_service.stop()
+    except Exception as e:
+        logger.error(f"停止告警检测服务失败: {e}")
 
     # 停止WebSocket监听器
     try:
@@ -108,6 +120,8 @@ register_exception_handlers(app)
 # 注册路由
 app.include_router(devices_router, prefix="/api/v1")
 app.include_router(sensor_data_router, prefix="/api/v1")
+app.include_router(alerts_router, prefix="/api/v1")
+app.include_router(alert_rules_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 

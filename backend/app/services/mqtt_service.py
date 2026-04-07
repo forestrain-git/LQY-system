@@ -30,6 +30,7 @@ class MQTTService:
         self.client: aiomqtt.Client | None = None
         self.running = False
         self._task: asyncio.Task | None = None
+        self.data_callback = None  # 数据回调函数
 
     async def start(self):
         """启动MQTT服务"""
@@ -101,6 +102,13 @@ class MQTTService:
                 # 发布到Redis供WebSocket使用
                 await self._publish_to_redis(sensor_data)
                 logger.debug(f"已处理设备 {device_name} 的数据")
+
+                # 调用数据回调（告警检测）
+                if self.data_callback:
+                    try:
+                        await self.data_callback(sensor_data)
+                    except Exception as e:
+                        logger.error(f"数据回调失败: {e}")
 
         except json.JSONDecodeError as e:
             logger.error(f"JSON解析错误: {e}, payload: {payload}")
