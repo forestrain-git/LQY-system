@@ -12,9 +12,10 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
-from app.core.db import get_session
+from app.database import get_session
 from app.modules.dispatch.models import (
     Vehicle, VehicleCreate, VehicleRead, VehicleUpdate,
     Berth, BerthRead, BerthStatus,
@@ -30,60 +31,55 @@ router = APIRouter(prefix="/dispatch", tags=["dispatch"])
 # ============== 车辆管理 / Vehicle Management ==============
 
 @router.get("/vehicles", response_model=List[VehicleRead])
-def list_vehicles(
+async def list_vehicles(
     status: Optional[str] = None,
     vehicle_type: Optional[str] = None,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     skip: int = 0,
     limit: int = 100
 ):
-    """
-    获取车辆列表 / Get vehicle list
-
-    Args:
-        status: 按状态过滤 / Filter by status
-        vehicle_type: 按类型过滤 / Filter by type
-    """
+    """获取车辆列表 / Get vehicle list"""
     query = select(Vehicle)
     if status:
         query = query.where(Vehicle.status == status)
     if vehicle_type:
         query = query.where(Vehicle.vehicle_type == vehicle_type)
 
-    vehicles = session.exec(query.offset(skip).limit(limit)).all()
+    result = await session.execute(query.offset(skip).limit(limit))
+    vehicles = result.scalars().all()
     return vehicles
 
 
 @router.post("/vehicles", response_model=VehicleRead)
-def create_vehicle(
+async def create_vehicle(
     vehicle: VehicleCreate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """创建车辆 / Create vehicle"""
     db_vehicle = Vehicle.model_validate(vehicle)
     session.add(db_vehicle)
-    session.commit()
-    session.refresh(db_vehicle)
+    await session.commit()
+    await session.refresh(db_vehicle)
     return db_vehicle
 
 
 @router.get("/vehicles/{vehicle_id}", response_model=VehicleRead)
-def get_vehicle(vehicle_id: int, session: Session = Depends(get_session)):
+async def get_vehicle(vehicle_id: int, session: AsyncSession = Depends(get_session)):
     """获取车辆详情 / Get vehicle details"""
-    vehicle = session.get(Vehicle, vehicle_id)
+    vehicle = await session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return vehicle
 
 
 @router.patch("/vehicles/{vehicle_id}", response_model=VehicleRead)
-def update_vehicle(
+async def update_vehicle(
     vehicle_id: int,
     vehicle_update: VehicleUpdate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """更新车辆信息 / Update vehicle"""
-    vehicle = session.get(Vehicle, vehicle_id)
+    vehicle = await session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
@@ -92,50 +88,46 @@ def update_vehicle(
         setattr(vehicle, key, value)
 
     session.add(vehicle)
-    session.commit()
-    session.refresh(vehicle)
+    await session.commit()
+    await session.refresh(vehicle)
     return vehicle
 
 
 # ============== 泊位管理 / Berth Management ==============
 
 @router.get("/berths", response_model=List[BerthRead])
-def list_berths(
+async def list_berths(
     status: Optional[str] = None,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """获取泊位列表 / Get berth list"""
     query = select(Berth)
     if status:
         query = query.where(Berth.status == status)
 
-    berths = session.exec(query).all()
+    result = await session.execute(query)
+    berths = result.scalars().all()
     return berths
 
 
 @router.get("/berths/{berth_id}", response_model=BerthRead)
-def get_berth(berth_id: int, session: Session = Depends(get_session)):
+async def get_berth(berth_id: int, session: AsyncSession = Depends(get_session)):
     """获取泊位详情 / Get berth details"""
-    berth = session.get(Berth, berth_id)
+    berth = await session.get(Berth, berth_id)
     if not berth:
         raise HTTPException(status_code=404, detail="Berth not found")
     return berth
 
 
 @router.get("/berths/{berth_id}/status")
-def get_berth_status(berth_id: int, session: Session = Depends(get_session)):
-    """
-    获取泊位实时状态 / Get berth real-time status
-
-    包含当前车辆、等待队列等信息
-    Includes current vehicle, queue info, etc.
-    """
-    berth = session.get(Berth, berth_id)
+async def get_berth_status(berth_id: int, session: AsyncSession = Depends(get_session)):
+    """获取泊位实时状态 / Get berth real-time status"""
+    berth = await session.get(Berth, berth_id)
     if not berth:
         raise HTTPException(status_code=404, detail="Berth not found")
 
     # 查询当前占用该泊位的调度
-    current_schedule = session.exec(
+    result = await session.execute(
         select(Schedule).where(
             Schedule.berth_id == berth_id,
             Schedule.status.in_([
@@ -143,7 +135,8 @@ def get_berth_status(berth_id: int, session: Session = Depends(get_session)):
                 ScheduleStatus.UNLOADING
             ])
         )
-    ).first()
+    )
+    current_schedule = result.scalar_one_or_none()
 
     return {
         "berth_id": berth_id,
@@ -158,10 +151,10 @@ def get_berth_status(berth_id: int, session: Session = Depends(get_session)):
 # ============== 调度管理 / Schedule Management ==============
 
 @router.get("/schedules", response_model=List[ScheduleRead])
-def list_schedules(
+async def list_schedules(
     status: Optional[str] = None,
     vehicle_id: Optional[int] = None,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     skip: int = 0,
     limit: int = 100
 ):
@@ -172,34 +165,29 @@ def list_schedules(
     if vehicle_id:
         query = query.where(Schedule.vehicle_id == vehicle_id)
 
-    # 按时间倒序 / Descending by time
     query = query.order_by(Schedule.created_at.desc())
-
-    schedules = session.exec(query.offset(skip).limit(limit)).all()
+    result = await session.execute(query.offset(skip).limit(limit))
+    schedules = result.scalars().all()
     return schedules
 
 
 @router.post("/schedules", response_model=ScheduleRead)
-def create_schedule(
+async def create_schedule(
     schedule: ScheduleCreate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    创建调度记录 / Create schedule record
-
-    系统自动分配泊位或加入队列
-    System auto-allocates berth or adds to queue
-    """
-    # 获取所有泊位用于分配 / Get all berths for allocation
-    berths = session.exec(select(Berth)).all()
+    """创建调度记录 / Create schedule record"""
+    # 获取所有泊位用于分配
+    result = await session.execute(select(Berth))
+    berths = result.scalars().all()
     dispatch_service = SmartDispatchService(berths)
 
-    # 获取车辆信息 / Get vehicle info
-    vehicle = session.get(Vehicle, schedule.vehicle_id)
+    # 获取车辆信息
+    vehicle = await session.get(Vehicle, schedule.vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
-    # 使用调度服务处理 / Use dispatch service
+    # 使用调度服务处理
     new_schedule = dispatch_service.schedule_arrival(
         vehicle=vehicle,
         expected_waste_type=schedule.expected_waste_type,
@@ -207,7 +195,7 @@ def create_schedule(
         appointment_time=schedule.appointment_time
     )
 
-    # 保存到数据库 / Save to database
+    # 保存到数据库
     db_schedule = Schedule(
         vehicle_id=new_schedule.vehicle_id,
         berth_id=new_schedule.berth_id,
@@ -220,33 +208,28 @@ def create_schedule(
         checked_in_at=new_schedule.checked_in_at,
     )
     session.add(db_schedule)
-    session.commit()
-    session.refresh(db_schedule)
+    await session.commit()
+    await session.refresh(db_schedule)
 
     return db_schedule
 
 
 @router.get("/schedules/{schedule_id}", response_model=ScheduleRead)
-def get_schedule(schedule_id: int, session: Session = Depends(get_session)):
+async def get_schedule(schedule_id: int, session: AsyncSession = Depends(get_session)):
     """获取调度详情 / Get schedule details"""
-    schedule = session.get(Schedule, schedule_id)
+    schedule = await session.get(Schedule, schedule_id)
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     return schedule
 
 
 @router.post("/schedules/{schedule_id}/checkin")
-def check_in_vehicle(
+async def check_in_vehicle(
     schedule_id: int,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    车辆签到 / Vehicle check-in
-
-    记录车辆到达并开始排队或直接进入泊位
-    Records arrival and starts queuing or direct berth entry
-    """
-    schedule = session.get(Schedule, schedule_id)
+    """车辆签到 / Vehicle check-in"""
+    schedule = await session.get(Schedule, schedule_id)
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
 
@@ -254,19 +237,19 @@ def check_in_vehicle(
     schedule.checked_in_at = datetime.now()
 
     session.add(schedule)
-    session.commit()
-    session.refresh(schedule)
+    await session.commit()
+    await session.refresh(schedule)
 
     return {"message": "Check-in successful", "schedule": schedule}
 
 
 @router.post("/schedules/{schedule_id}/start-unloading")
-def start_unloading(
+async def start_unloading(
     schedule_id: int,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """开始卸货 / Start unloading"""
-    schedule = session.get(Schedule, schedule_id)
+    schedule = await session.get(Schedule, schedule_id)
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
 
@@ -280,26 +263,21 @@ def start_unloading(
     schedule.unloading_started_at = datetime.now()
 
     session.add(schedule)
-    session.commit()
-    session.refresh(schedule)
+    await session.commit()
+    await session.refresh(schedule)
 
     return {"message": "Unloading started", "schedule": schedule}
 
 
 @router.post("/schedules/{schedule_id}/complete")
-def complete_schedule(
+async def complete_schedule(
     schedule_id: int,
     gross_weight: float,
     tare_weight: float,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    完成调度 / Complete schedule
-
-    传入地磅称重数据，计算净重并释放泊位
-    Input weighbridge data, calculate net weight, release berth
-    """
-    schedule = session.get(Schedule, schedule_id)
+    """完成调度 / Complete schedule"""
+    schedule = await session.get(Schedule, schedule_id)
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
 
@@ -309,7 +287,7 @@ def complete_schedule(
             detail=f"Cannot complete from status: {schedule.status}"
         )
 
-    # 更新重量数据 / Update weight data
+    # 更新重量数据
     schedule.gross_weight = gross_weight
     schedule.tare_weight = tare_weight
     schedule.net_weight = gross_weight - tare_weight
@@ -317,17 +295,17 @@ def complete_schedule(
     schedule.unloading_completed_at = datetime.now()
     schedule.completed_at = datetime.now()
 
-    # 释放泊位 / Release berth
+    # 释放泊位
     if schedule.berth_id:
-        berth = session.get(Berth, schedule.berth_id)
+        berth = await session.get(Berth, schedule.berth_id)
         if berth:
             berth.status = BerthStatus.AVAILABLE
             berth.current_vehicle_id = None
             session.add(berth)
 
     session.add(schedule)
-    session.commit()
-    session.refresh(schedule)
+    await session.commit()
+    await session.refresh(schedule)
 
     return {
         "message": "Schedule completed",
@@ -339,28 +317,25 @@ def complete_schedule(
 # ============== 队列与优化 / Queue & Optimization ==============
 
 @router.get("/queue/status")
-def get_queue_status(session: Session = Depends(get_session)):
-    """
-    获取队列状态 / Get queue status
-
-    包含当前等待车辆数、预估等待时间等
-    Includes waiting vehicles, estimated wait time, etc.
-    """
-    # 统计各状态调度 / Count by status
-    queued_count = session.exec(
+async def get_queue_status(session: AsyncSession = Depends(get_session)):
+    """获取队列状态 / Get queue status"""
+    # 统计各状态调度
+    queued_result = await session.execute(
         select(Schedule).where(Schedule.status == ScheduleStatus.QUEUED)
-    ).all()
+    )
+    queued_count = queued_result.scalars().all()
 
-    checked_in_count = session.exec(
+    checked_in_result = await session.execute(
         select(Schedule).where(Schedule.status == ScheduleStatus.CHECKED_IN)
-    ).all()
+    )
+    checked_in_count = checked_in_result.scalars().all()
 
-    unloading_count = session.exec(
+    unloading_result = await session.execute(
         select(Schedule).where(Schedule.status == ScheduleStatus.UNLOADING)
-    ).all()
+    )
+    unloading_count = unloading_result.scalars().all()
 
-    # 计算平均等待时间 / Calculate average wait time
-    avg_wait_minutes = len(queued_count) * 15  # 简化估算 / Simplified estimate
+    avg_wait_minutes = len(queued_count) * 15
 
     return {
         "queued": len(queued_count),
@@ -372,32 +347,30 @@ def get_queue_status(session: Session = Depends(get_session)):
 
 
 @router.get("/recommendations")
-def get_dispatch_recommendations(
-    session: Session = Depends(get_session)
+async def get_dispatch_recommendations(
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    获取调度建议 / Get dispatch recommendations
-
-    系统基于当前状态生成的最优调度方案
-    Optimal dispatch plan based on current state
-    """
-    # 获取待处理调度 / Get pending schedules
-    pending = session.exec(
+    """获取调度建议 / Get dispatch recommendations"""
+    # 获取待处理调度
+    result = await session.execute(
         select(Schedule).where(
             Schedule.status.in_([
                 ScheduleStatus.QUEUED,
                 ScheduleStatus.CHECKED_IN
             ])
         )
-    ).all()
+    )
+    pending = result.scalars().all()
 
-    # 获取所有车辆 / Get all vehicles
-    vehicles = session.exec(select(Vehicle)).all()
+    # 获取所有车辆
+    vehicles_result = await session.execute(select(Vehicle))
+    vehicles = vehicles_result.scalars().all()
 
-    # 获取泊位 / Get berths
-    berths = session.exec(select(Berth)).all()
+    # 获取泊位
+    berths_result = await session.execute(select(Berth))
+    berths = berths_result.scalars().all()
 
-    # 生成建议 / Generate recommendations
+    # 生成建议
     service = SmartDispatchService(berths)
     recommendations = service.optimizer.generate_recommendations(pending, vehicles)
 
@@ -410,35 +383,31 @@ def get_dispatch_recommendations(
                 "priority_score": r.priority_score,
                 "reason": r.reason
             }
-            for r in recommendations[:10]  # 只返回前10条 / Return top 10
+            for r in recommendations[:10]
         ],
         "generated_at": datetime.now().isoformat()
     }
 
 
 @router.post("/queue/process")
-def process_queue(session: Session = Depends(get_session)):
-    """
-    手动触发队列处理 / Manually trigger queue processing
-
-    系统会自动尝试为队列中的车辆分配可用泊位
-    System auto-allocates available berths to queued vehicles
-    """
-    berths = session.exec(select(Berth)).all()
+async def process_queue(session: AsyncSession = Depends(get_session)):
+    """手动触发队列处理 / Manually trigger queue processing"""
+    berths_result = await session.execute(select(Berth))
+    berths = berths_result.scalars().all()
     service = SmartDispatchService(berths)
 
-    # 处理队列 / Process queue
+    # 处理队列
     processed = service.process_queue()
 
-    # 保存到数据库 / Save to database
+    # 保存到数据库
     for schedule in processed:
-        db_schedule = session.get(Schedule, schedule.id)
+        db_schedule = await session.get(Schedule, schedule.id)
         if db_schedule:
             db_schedule.berth_id = schedule.berth_id
             db_schedule.status = schedule.status
             session.add(db_schedule)
 
-    session.commit()
+    await session.commit()
 
     return {
         "processed_count": len(processed),

@@ -8,13 +8,16 @@ Author: AI Sprint
 Date: 2026-04-07
 """
 
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
+from sqlmodel import select
 
-from app.core.db import get_session
+from app.database import get_session
 from app.modules.workflow.models import (
     Staff, StaffCreate, StaffRead, StaffUpdate,
     Department, DepartmentCreate, DepartmentRead,
@@ -29,33 +32,34 @@ router = APIRouter(prefix="/workflow", tags=["workflow"])
 # ============== 部门管理 / Department Management ==============
 
 @router.get("/departments", response_model=List[DepartmentRead])
-def list_departments(
-    session: Session = Depends(get_session),
+async def list_departments(
+    session: AsyncSession = Depends(get_session),
     skip: int = 0,
     limit: int = 100
 ):
     """获取部门列表 / Get department list"""
-    departments = session.exec(select(Department).offset(skip).limit(limit)).all()
+    result = await session.execute(select(Department).offset(skip).limit(limit))
+    departments = result.scalars().all()
     return departments
 
 
 @router.post("/departments", response_model=DepartmentRead)
-def create_department(
+async def create_department(
     department: DepartmentCreate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """创建部门 / Create department"""
     db_department = Department.model_validate(department)
     session.add(db_department)
-    session.commit()
-    session.refresh(db_department)
+    await session.commit()
+    await session.refresh(db_department)
     return db_department
 
 
 @router.get("/departments/{department_id}", response_model=DepartmentRead)
-def get_department(department_id: int, session: Session = Depends(get_session)):
+async def get_department(department_id: int, session: AsyncSession = Depends(get_session)):
     """获取部门详情 / Get department details"""
-    department = session.get(Department, department_id)
+    department = await session.get(Department, department_id)
     if not department:
         raise HTTPException(status_code=404, detail="Department not found")
     return department
@@ -64,22 +68,15 @@ def get_department(department_id: int, session: Session = Depends(get_session)):
 # ============== 人员管理 / Staff Management ==============
 
 @router.get("/staff", response_model=List[StaffRead])
-def list_staff(
+async def list_staff(
     status: Optional[str] = None,
     department_id: Optional[int] = None,
     role: Optional[str] = None,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     skip: int = 0,
     limit: int = 100
 ):
-    """
-    获取人员列表 / Get staff list
-
-    Args:
-        status: 按状态过滤 / Filter by status
-        department_id: 按部门过滤 / Filter by department
-        role: 按角色过滤 / Filter by role
-    """
+    """获取人员列表 / Get staff list"""
     query = select(Staff)
     if status:
         query = query.where(Staff.status == status)
@@ -88,40 +85,41 @@ def list_staff(
     if role:
         query = query.where(Staff.role == role)
 
-    staff_list = session.exec(query.offset(skip).limit(limit)).all()
+    result = await session.execute(query.offset(skip).limit(limit))
+    staff_list = result.scalars().all()
     return staff_list
 
 
 @router.post("/staff", response_model=StaffRead)
-def create_staff(
+async def create_staff(
     staff: StaffCreate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """创建人员 / Create staff"""
     db_staff = Staff.model_validate(staff)
     session.add(db_staff)
-    session.commit()
-    session.refresh(db_staff)
+    await session.commit()
+    await session.refresh(db_staff)
     return db_staff
 
 
 @router.get("/staff/{staff_id}", response_model=StaffRead)
-def get_staff(staff_id: int, session: Session = Depends(get_session)):
+async def get_staff(staff_id: int, session: AsyncSession = Depends(get_session)):
     """获取人员详情 / Get staff details"""
-    staff = session.get(Staff, staff_id)
+    staff = await session.get(Staff, staff_id)
     if not staff:
         raise HTTPException(status_code=404, detail="Staff not found")
     return staff
 
 
 @router.patch("/staff/{staff_id}", response_model=StaffRead)
-def update_staff(
+async def update_staff(
     staff_id: int,
     staff_update: StaffUpdate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """更新人员信息 / Update staff"""
-    staff = session.get(Staff, staff_id)
+    staff = await session.get(Staff, staff_id)
     if not staff:
         raise HTTPException(status_code=404, detail="Staff not found")
 
@@ -131,20 +129,15 @@ def update_staff(
 
     staff.updated_at = datetime.now()
     session.add(staff)
-    session.commit()
-    session.refresh(staff)
+    await session.commit()
+    await session.refresh(staff)
     return staff
 
 
 @router.get("/staff/{staff_id}/location")
-def get_staff_location(staff_id: int, session: Session = Depends(get_session)):
-    """
-    获取人员实时位置 / Get staff real-time location
-
-    返回GPS坐标和最后更新时间
-    Returns GPS coordinates and last update time
-    """
-    staff = session.get(Staff, staff_id)
+async def get_staff_location(staff_id: int, session: AsyncSession = Depends(get_session)):
+    """获取人员实时位置 / Get staff real-time location"""
+    staff = await session.get(Staff, staff_id)
     if not staff:
         raise HTTPException(status_code=404, detail="Staff not found")
 
@@ -158,14 +151,14 @@ def get_staff_location(staff_id: int, session: Session = Depends(get_session)):
 
 
 @router.post("/staff/{staff_id}/location")
-def update_staff_location(
+async def update_staff_location(
     staff_id: int,
     latitude: float,
     longitude: float,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """更新人员位置 / Update staff location"""
-    staff = session.get(Staff, staff_id)
+    staff = await session.get(Staff, staff_id)
     if not staff:
         raise HTTPException(status_code=404, detail="Staff not found")
 
@@ -174,33 +167,24 @@ def update_staff_location(
     staff.gps_updated_at = datetime.now()
 
     session.add(staff)
-    session.commit()
-    session.refresh(staff)
-
+    await session.commit()
+    await session.refresh(staff)
     return {"message": "Location updated", "staff": staff}
 
 
 # ============== 工单管理 / Work Order Management ==============
 
 @router.get("/work-orders", response_model=List[WorkOrderRead])
-def list_work_orders(
+async def list_work_orders(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     order_type: Optional[str] = None,
     assignee_id: Optional[int] = None,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     skip: int = 0,
     limit: int = 100
 ):
-    """
-    获取工单列表 / Get work order list
-
-    Args:
-        status: 按状态过滤 / Filter by status
-        priority: 按优先级过滤 / Filter by priority
-        order_type: 按类型过滤 / Filter by type
-        assignee_id: 按执行人过滤 / Filter by assignee
-    """
+    """获取工单列表 / Get work order list"""
     query = select(WorkOrder)
     if status:
         query = query.where(WorkOrder.status == status)
@@ -211,26 +195,20 @@ def list_work_orders(
     if assignee_id:
         query = query.where(WorkOrder.assignee_id == assignee_id)
 
-    # 按创建时间倒序 / Descending by creation time
     query = query.order_by(WorkOrder.created_at.desc())
-
-    orders = session.exec(query.offset(skip).limit(limit)).all()
+    result = await session.execute(query.offset(skip).limit(limit))
+    orders = result.scalars().all()
     return orders
 
 
 @router.post("/work-orders", response_model=WorkOrderRead)
-def create_work_order(
+async def create_work_order(
     order: WorkOrderCreate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    创建工单 / Create work order
-
-    自动生成工单编号，初始状态为待处理
-    Auto-generates order number, initial status is pending
-    """
-    # 生成工单编号 / Generate order number
-    order_no = f"WO{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    """创建工单 / Create work order"""
+    # 生成工单编号 (含UUID防止并发冲突) / Generate order number with UUID
+    order_no = f"WO{datetime.now().strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:4].upper()}"
 
     db_order = WorkOrder(
         order_no=order_no,
@@ -248,28 +226,28 @@ def create_work_order(
     )
 
     session.add(db_order)
-    session.commit()
-    session.refresh(db_order)
+    await session.commit()
+    await session.refresh(db_order)
     return db_order
 
 
 @router.get("/work-orders/{order_id}", response_model=WorkOrderRead)
-def get_work_order(order_id: int, session: Session = Depends(get_session)):
+async def get_work_order(order_id: int, session: AsyncSession = Depends(get_session)):
     """获取工单详情 / Get work order details"""
-    order = session.get(WorkOrder, order_id)
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
     return order
 
 
 @router.patch("/work-orders/{order_id}", response_model=WorkOrderRead)
-def update_work_order(
+async def update_work_order(
     order_id: int,
     order_update: WorkOrderUpdate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """更新工单信息 / Update work order"""
-    order = session.get(WorkOrder, order_id)
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
@@ -279,28 +257,23 @@ def update_work_order(
 
     order.updated_at = datetime.now()
     session.add(order)
-    session.commit()
-    session.refresh(order)
+    await session.commit()
+    await session.refresh(order)
     return order
 
 
 @router.post("/work-orders/{order_id}/assign")
-def assign_work_order(
+async def assign_work_order(
     order_id: int,
     assignee_id: int,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    分配工单 / Assign work order
-
-    将工单分配给指定执行人
-    Assigns work order to specified assignee
-    """
-    order = session.get(WorkOrder, order_id)
+    """分配工单 / Assign work order"""
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
-    assignee = session.get(Staff, assignee_id)
+    assignee = await session.get(Staff, assignee_id)
     if not assignee:
         raise HTTPException(status_code=404, detail="Assignee not found")
 
@@ -309,19 +282,18 @@ def assign_work_order(
     order.updated_at = datetime.now()
 
     session.add(order)
-    session.commit()
-    session.refresh(order)
-
+    await session.commit()
+    await session.refresh(order)
     return {"message": "Work order assigned", "order": order}
 
 
 @router.post("/work-orders/{order_id}/start")
-def start_work_order(
+async def start_work_order(
     order_id: int,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """开始工单 / Start work order"""
-    order = session.get(WorkOrder, order_id)
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
@@ -336,27 +308,20 @@ def start_work_order(
     order.updated_at = datetime.now()
 
     session.add(order)
-    session.commit()
-    session.refresh(order)
-
+    await session.commit()
+    await session.refresh(order)
     return {"message": "Work order started", "order": order}
 
 
 @router.post("/work-orders/{order_id}/complete")
-def complete_work_order(
+async def complete_work_order(
     order_id: int,
     result_summary: Optional[str] = None,
     satisfaction: Optional[int] = None,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
-    """
-    完成工单 / Complete work order
-
-    Args:
-        result_summary: 处理结果摘要 / Result summary
-        satisfaction: 满意度评分(1-5) / Satisfaction rating
-    """
-    order = session.get(WorkOrder, order_id)
+    """完成工单 / Complete work order"""
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
@@ -373,20 +338,19 @@ def complete_work_order(
     order.updated_at = datetime.now()
 
     session.add(order)
-    session.commit()
-    session.refresh(order)
-
+    await session.commit()
+    await session.refresh(order)
     return {"message": "Work order completed", "order": order}
 
 
 @router.post("/work-orders/{order_id}/cancel")
-def cancel_work_order(
+async def cancel_work_order(
     order_id: int,
     reason: Optional[str] = None,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """取消工单 / Cancel work order"""
-    order = session.get(WorkOrder, order_id)
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
@@ -401,84 +365,76 @@ def cancel_work_order(
     order.updated_at = datetime.now()
 
     session.add(order)
-    session.commit()
-    session.refresh(order)
-
+    await session.commit()
+    await session.refresh(order)
     return {"message": "Work order cancelled", "order": order}
 
 
 # ============== 工单统计 / Work Order Statistics ==============
 
 @router.get("/work-orders/stats/overview")
-def get_work_order_stats(session: Session = Depends(get_session)):
-    """
-    获取工单统计概览 / Get work order statistics overview
-    """
-    # 各状态数量 / Count by status
-    status_counts = {}
-    for status in WorkOrderStatus:
-        count = session.exec(
-            select(WorkOrder).where(WorkOrder.status == status)
-        ).all()
-        status_counts[status.value] = len(count)
+async def get_work_order_stats(session: AsyncSession = Depends(get_session)):
+    """获取工单统计概览 / Get work order statistics overview"""
+    # 使用聚合查询优化性能 / Use aggregation for better performance
+    stats = {}
 
-    # 各优先级数量 / Count by priority
-    priority_counts = {}
-    for priority in WorkOrderPriority:
-        count = session.exec(
-            select(WorkOrder).where(WorkOrder.priority == priority)
-        ).all()
-        priority_counts[priority.value] = len(count)
+    # 状态统计 / Status counts
+    status_result = await session.execute(
+        select(WorkOrder.status, func.count(WorkOrder.id)).group_by(WorkOrder.status)
+    )
+    stats["by_status"] = {row[0].value: row[1] for row in status_result.all()}
 
-    # 各类型数量 / Count by type
-    type_counts = {}
-    for order_type in WorkOrderType:
-        count = session.exec(
-            select(WorkOrder).where(WorkOrder.order_type == order_type)
-        ).all()
-        type_counts[order_type.value] = len(count)
+    # 优先级统计 / Priority counts
+    priority_result = await session.execute(
+        select(WorkOrder.priority, func.count(WorkOrder.id)).group_by(WorkOrder.priority)
+    )
+    stats["by_priority"] = {row[0].value: row[1] for row in priority_result.all()}
 
-    return {
-        "by_status": status_counts,
-        "by_priority": priority_counts,
-        "by_type": type_counts,
-        "total": sum(status_counts.values()),
-    }
+    # 类型统计 / Type counts
+    type_result = await session.execute(
+        select(WorkOrder.order_type, func.count(WorkOrder.id)).group_by(WorkOrder.order_type)
+    )
+    stats["by_type"] = {row[0].value: row[1] for row in type_result.all()}
+
+    stats["total"] = sum(stats["by_status"].values())
+    return stats
 
 
 # ============== 任务管理 / Task Management ==============
 
 @router.get("/work-orders/{order_id}/tasks", response_model=List[TaskRead])
-def list_work_order_tasks(
+async def list_work_order_tasks(
     order_id: int,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """获取工单任务列表 / Get work order task list"""
-    order = session.get(WorkOrder, order_id)
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
-    tasks = session.exec(
+    result = await session.execute(
         select(WorkOrderTask).where(WorkOrderTask.work_order_id == order_id)
-    ).all()
+    )
+    tasks = result.scalars().all()
     return tasks
 
 
 @router.post("/work-orders/{order_id}/tasks", response_model=TaskRead)
-def create_task(
+async def create_task(
     order_id: int,
     task: TaskCreate,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """创建工单任务 / Create work order task"""
-    order = session.get(WorkOrder, order_id)
+    order = await session.get(WorkOrder, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Work order not found")
 
     # 获取当前最大任务序号 / Get current max task number
-    existing_tasks = session.exec(
+    result = await session.execute(
         select(WorkOrderTask).where(WorkOrderTask.work_order_id == order_id)
-    ).all()
+    )
+    existing_tasks = result.scalars().all()
     next_task_no = len(existing_tasks) + 1
 
     db_task = WorkOrderTask(
@@ -491,22 +447,22 @@ def create_task(
     )
 
     session.add(db_task)
-    session.commit()
-    session.refresh(db_task)
+    await session.commit()
+    await session.refresh(db_task)
     return db_task
 
 
 @router.patch("/work-orders/{order_id}/tasks/{task_id}", response_model=TaskRead)
-def update_task(
+async def update_task(
     order_id: int,
     task_id: int,
     status: Optional[str] = None,
     actual_time_minutes: Optional[int] = None,
     result_notes: Optional[str] = None,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """更新任务状态 / Update task status"""
-    task = session.get(WorkOrderTask, task_id)
+    task = await session.get(WorkOrderTask, task_id)
     if not task or task.work_order_id != order_id:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -519,6 +475,6 @@ def update_task(
 
     task.updated_at = datetime.now()
     session.add(task)
-    session.commit()
-    session.refresh(task)
+    await session.commit()
+    await session.refresh(task)
     return task
