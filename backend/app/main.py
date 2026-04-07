@@ -19,6 +19,7 @@ from app.api.v1 import (
 from app.modules.dispatch.api import router as dispatch_router
 from app.modules.workflow.api import router as workflow_router
 from app.modules.equipment.api import router as equipment_router
+from app.modules.safety.api import router as safety_router
 from app.modules.ai.api import router as ai_router
 from app.api.websocket import manager, router as websocket_router
 from app.config import settings
@@ -136,6 +137,7 @@ app.include_router(predictions_router, prefix="/api/v1")
 app.include_router(dispatch_router, prefix="/api/v1")
 app.include_router(workflow_router, prefix="/api/v1")
 app.include_router(equipment_router, prefix="/api/v1")
+app.include_router(safety_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
