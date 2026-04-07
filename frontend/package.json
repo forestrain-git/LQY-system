@@ -30,7 +30,7 @@
     "eslint-plugin-vue": "^9.19.0",
     "playwright": "^1.59.1",
     "puppeteer": "^24.40.0",
-    "typescript": "^5.3.0",
+    "typescript": "^5.9.3",
     "vite": "^5.0.0",
     "vue-tsc": "^1.8.0"
   }

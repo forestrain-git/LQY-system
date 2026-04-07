@@ -1,0 +1,21 @@
+{
+  "cleanup_threshold": 0.70,
+  "cleanup_schedule": {
+    "time_based": "2h",
+    "token_based": 0.70
+  },
+  "strategy": {
+    "preserve": [
+      "Sprint_15h_Plan.md",
+      "Sprint_Current_Status.md", 
+      "progress.json",
+      "tech_debt.md"
+    ],
+    "archive": [
+      "/tmp/claude-*/",
+      "*.output",
+      "*.log"
+    ]
+  },
+  "auto_cleanup": true
+}
