@@ -573,3 +573,149 @@ class WorkOrderTask(SQLModel, table=True):
                 "status": "pending",
             }
         }
+
+
+# ============== Pydantic Schemas for API ==============
+
+class DepartmentCreate(SQLModel):
+    """部门创建Schema / Department create schema"""
+    code: str
+    name: str
+    description: str | None = None
+    parent_id: int | None = None
+
+
+class DepartmentRead(SQLModel):
+    """部门读取Schema / Department read schema"""
+    id: int
+    code: str
+    name: str
+    description: str | None
+    parent_id: int | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class StaffCreate(SQLModel):
+    """人员创建Schema / Staff create schema"""
+    employee_no: str
+    name: str
+    role: StaffRole = StaffRole.OPERATOR
+    phone: str | None = None
+    email: str | None = None
+    department_id: int | None = None
+    badge_id: str | None = None
+    status: StaffStatus = StaffStatus.ACTIVE
+
+
+class StaffRead(SQLModel):
+    """人员读取Schema / Staff read schema"""
+    id: int
+    employee_no: str
+    name: str
+    role: StaffRole
+    phone: str | None
+    email: str | None
+    department_id: int | None
+    badge_id: str | None
+    status: StaffStatus
+    gps_latitude: float | None
+    gps_longitude: float | None
+    gps_updated_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class StaffUpdate(SQLModel):
+    """人员更新Schema / Staff update schema"""
+    name: str | None = None
+    role: StaffRole | None = None
+    phone: str | None = None
+    email: str | None = None
+    department_id: int | None = None
+    badge_id: str | None = None
+    status: StaffStatus | None = None
+    gps_latitude: float | None = None
+    gps_longitude: float | None = None
+
+
+class WorkOrderCreate(SQLModel):
+    """工单创建Schema / Work order create schema"""
+    order_type: WorkOrderType = WorkOrderType.INSPECTION
+    title: str
+    description: str | None = None
+    priority: WorkOrderPriority = WorkOrderPriority.MEDIUM
+    equipment_id: int | None = None
+    vehicle_id: int | None = None
+    creator_id: int
+    assignee_id: int | None = None
+    planned_start: datetime | None = None
+    planned_end: datetime | None = None
+
+
+class WorkOrderRead(SQLModel):
+    """工单读取Schema / Work order read schema"""
+    id: int
+    order_no: str
+    order_type: WorkOrderType
+    title: str
+    description: str | None
+    priority: WorkOrderPriority
+    equipment_id: int | None
+    vehicle_id: int | None
+    creator_id: int
+    assignee_id: int | None
+    planned_start: datetime | None
+    planned_end: datetime | None
+    actual_start: datetime | None
+    actual_end: datetime | None
+    status: WorkOrderStatus
+    result_summary: str | None
+    satisfaction: int | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class WorkOrderUpdate(SQLModel):
+    """工单更新Schema / Work order update schema"""
+    title: str | None = None
+    description: str | None = None
+    priority: WorkOrderPriority | None = None
+    assignee_id: int | None = None
+    planned_start: datetime | None = None
+    planned_end: datetime | None = None
+    status: WorkOrderStatus | None = None
+
+
+class TaskCreate(SQLModel):
+    """任务创建Schema / Task create schema"""
+    description: str
+    assignee_id: int | None = None
+    standard_time_minutes: int | None = None
+
+
+class TaskRead(SQLModel):
+    """任务读取Schema / Task read schema"""
+    id: int
+    work_order_id: int
+    task_no: int
+    description: str
+    assignee_id: int | None
+    standard_time_minutes: int | None
+    actual_time_minutes: int | None
+    status: TaskStatus
+    result_notes: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

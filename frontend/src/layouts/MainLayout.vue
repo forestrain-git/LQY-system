@@ -1,0 +1,592 @@
+<!--
+  主布局组件 / Main Layout Component
+
+  提供应用的整体布局结构：侧边栏、顶部导航、内容区域
+  Provides app layout structure: sidebar, header, content area
+
+  Author: AI Sprint
+  Date: 2026-04-07
+-->
+<template>
+  <div class="main-layout" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
+    <!-- 侧边栏 / Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <div class="logo">
+          <Trash2 class="logo__icon" />
+          <span v-if="!isSidebarCollapsed" class="logo__text">龙泉驿环卫</span>
+        </div>
+        <button
+          class="sidebar__toggle"
+          @click="toggleSidebar"
+          :title="isSidebarCollapsed ? $t('sidebar.expand') : $t('sidebar.collapse')"
+        >
+          <ChevronLeft v-if="!isSidebarCollapsed" />
+          <ChevronRight v-else />
+        </button>
+      </div>
+
+      <nav class="sidebar__nav">
+        <router-link
+          v-for="item in menuItems"
+          :key="item.path"
+          :to="item.path"
+          class="nav-item"
+          :class="{ 'is-active': $route.path === item.path }"
+        >
+          <component :is="item.icon" class="nav-item__icon" />
+          <span v-if="!isSidebarCollapsed" class="nav-item__text">
+            {{ item.label }}
+          </span>
+          <span v-if="!isSidebarCollapsed && item.badge" class="nav-item__badge">
+            {{ item.badge }}
+          </span>
+        </router-link>
+      </nav>
+
+      <div class="sidebar__footer">
+        <ThemeSwitcher v-if="!isSidebarCollapsed" />
+        <button v-else class="theme-btn" @click="toggleTheme">
+          <Palette />
+        </button>
+      </div>
+    </aside>
+
+    <!-- 主内容区 / Main Content -->
+    <div class="main-content">
+      <!-- 顶部导航 / Header -->
+      <header class="header">
+        <div class="header__left">
+          <h1 class="page-title">{{ pageTitle }}</h1>
+        </div>
+        <div class="header__right">
+          <!-- 全局搜索 / Global Search -->
+          <div class="search-box">
+            <Search class="search-box__icon" />
+            <input
+              type="text"
+              :placeholder="$t('search.placeholder')"
+              class="search-box__input"
+            />
+          </div>
+
+          <!-- 通知 / Notifications -->
+          <button class="header-btn" :class="{ 'has-badge': unreadCount > 0 }">
+            <Bell />
+            <span v-if="unreadCount > 0" class="header-btn__badge">{{ unreadCount }}</span>
+          </button>
+
+          <!-- 用户菜单 / User Menu -->
+          <div class="user-menu" v-click-outside="closeUserMenu">
+            <button class="user-menu__trigger" @click="isUserMenuOpen = !isUserMenuOpen">
+              <div class="user-avatar">
+                {{ userInitials }}
+              </div>
+              <span class="user-name">{{ userName }}</span>
+              <ChevronDown class="user-menu__arrow" :class="{ 'is-open': isUserMenuOpen }" />
+            </button>
+
+            <Transition name="dropdown">
+              <div v-if="isUserMenuOpen" class="user-menu__dropdown">
+                <div class="user-menu__header">
+                  <div class="user-avatar user-avatar--large">{{ userInitials }}</div>
+                  <div class="user-info">
+                    <div class="user-info__name">{{ userName }}</div>
+                    <div class="user-info__role">{{ userRole }}</div>
+                  </div>
+                </div>
+                <div class="user-menu__divider"></div>
+                <router-link to="/profile" class="user-menu__item">
+                  <User class="user-menu__item-icon" />
+                  {{ $t('user.profile') }}
+                </router-link>
+                <router-link to="/settings" class="user-menu__item">
+                  <Settings class="user-menu__item-icon" />
+                  {{ $t('user.settings') }}
+                </router-link>
+                <div class="user-menu__divider"></div>
+                <button class="user-menu__item user-menu__item--danger" @click="logout">
+                  <LogOut class="user-menu__item-icon" />
+                  {{ $t('user.logout') }}
+                </button>
+              </div>
+            </Transition>
+          </div>
+        </div>
+      </header>
+
+      <!-- 页面内容 / Page Content -->
+      <main class="page-content">
+        <router-view v-slot="{ Component }">
+          <Transition name="page" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </router-view>
+      </main>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  Trash2, ChevronLeft, ChevronRight, ChevronDown,
+  LayoutDashboard, Truck, ClipboardList, Wrench, Shield,
+  Bot, Search, Bell, User, Settings, LogOut, Palette
+} from 'lucide-vue-next'
+import { useTheme } from '@/composables/useTheme'
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import { vClickOutside } from '@/directives/clickOutside'
+
+const route = useRoute()
+const router = useRouter()
+const { toggleTheme } = useTheme()
+
+// 侧边栏状态 / Sidebar state
+const isSidebarCollapsed = ref(false)
+const toggleSidebar = () => {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value
+  localStorage.setItem('sidebar-collapsed', String(isSidebarCollapsed.value))
+}
+
+// 从localStorage恢复状态 / Restore from localStorage
+if (typeof window !== 'undefined') {
+  const saved = localStorage.getItem('sidebar-collapsed')
+  if (saved) {
+    isSidebarCollapsed.value = saved === 'true'
+  }
+}
+
+// 菜单项 / Menu items
+const menuItems = [
+  { path: '/', icon: LayoutDashboard, label: '总览看板', badge: null },
+  { path: '/dispatch', icon: Truck, label: '智慧调度', badge: 3 },
+  { path: '/workorders', icon: ClipboardList, label: '工单管理', badge: 12 },
+  { path: '/equipment', icon: Wrench, label: '设备管理', badge: null },
+  { path: '/safety', icon: Shield, label: '安全管控', badge: 1 },
+  { path: '/ai-assistant', icon: Bot, label: 'AI助手', badge: null },
+]
+
+// 页面标题 / Page title
+const pageTitle = computed(() => {
+  const item = menuItems.find(item => item.path === route.path)
+  return item?.label || '龙泉驿环卫智能体'
+})
+
+// 通知数量 / Notification count
+const unreadCount = ref(3)
+
+// 用户菜单 / User menu
+const isUserMenuOpen = ref(false)
+const closeUserMenu = () => {
+  isUserMenuOpen.value = false
+}
+
+// 用户信息 / User info
+const userName = ref('管理员')
+const userRole = ref('系统管理员')
+const userInitials = computed(() => {
+  return userName.value.slice(0, 2)
+})
+
+// 退出登录 / Logout
+const logout = () => {
+  router.push('/login')
+}
+</script>
+
+<style scoped>
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+}
+
+/* 侧边栏 / Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: var(--color-bg-elevated);
+  border-right: 1px solid var(--color-border-primary);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-base);
+}
+
+.sidebar-collapsed .sidebar {
+  width: 64px;
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  overflow: hidden;
+}
+
+.logo__icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+}
+
+.logo__text {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.sidebar__toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar__toggle:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.sidebar__nav {
+  flex: 1;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.nav-item:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.nav-item.is-active {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.nav-item__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.nav-item__text {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nav-item__badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: white;
+  background-color: var(--color-accent-danger);
+  border-radius: var(--radius-full);
+}
+
+.sidebar__footer {
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.theme-btn {
+  width: 100%;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+}
+
+/* 主内容区 / Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 顶部导航 / Header */
+.header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  background-color: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.page-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.search-box {
+  position: relative;
+  width: 280px;
+}
+
+.search-box__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-tertiary);
+}
+
+.search-box__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 24px);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.search-box__input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  background-color: var(--color-bg-primary);
+}
+
+.search-box__input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.header-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.header-btn:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.header-btn__badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  background-color: var(--color-accent-danger);
+  border-radius: var(--radius-full);
+}
+
+/* 用户菜单 / User Menu */
+.user-menu {
+  position: relative;
+}
+
+.user-menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.user-menu__trigger:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: white;
+  background-color: var(--color-primary-600);
+  border-radius: var(--radius-full);
+}
+
+.user-avatar--large {
+  width: 48px;
+  height: 48px;
+  font-size: var(--text-base);
+}
+
+.user-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.user-menu__arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.user-menu__arrow.is-open {
+  transform: rotate(180deg);
+}
+
+.user-menu__dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  width: 240px;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.user-menu__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-bg-secondary);
+}
+
+.user-info__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.user-info__role {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.user-menu__divider {
+  height: 1px;
+  background-color: var(--color-border-secondary);
+}
+
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.user-menu__item:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.user-menu__item--danger {
+  color: var(--color-accent-danger);
+}
+
+.user-menu__item-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 页面内容 / Page Content */
+.page-content {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-6);
+}
+
+/* 动画 / Animations */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+</style>
