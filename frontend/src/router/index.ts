@@ -7,7 +7,7 @@
 
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
-import Dashboard from '@/views/Dashboard.vue'
+import DashboardView from '@/views/DashboardView.vue'
 import DeviceList from '@/views/devices/DeviceList.vue'
 import AlertList from '@/views/alerts/AlertList.vue'
 
@@ -20,7 +20,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'Dashboard',
-        component: Dashboard,
+        component: DashboardView,
         meta: { title: '总览看板' }
       },
       {
