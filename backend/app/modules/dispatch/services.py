@@ -8,10 +8,11 @@ Author: AI Sprint
 Date: 2026-04-07
 """
 
-from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
-from enum import Enum
 import heapq
+import random
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import List, Optional, Tuple
 
 from app.modules.dispatch.models import (
     Vehicle, VehicleStatus,
@@ -231,7 +232,6 @@ class BerthAllocator:
 
             return score
 
-        import random
         random.seed(vehicle.id)  # 可复现 / Reproducible
 
         # 评分并选择最佳 / Score and select best

@@ -17,7 +17,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.modules.dispatch.models import (
     Vehicle, VehicleCreate, VehicleRead, VehicleUpdate,
-    Berth, BerthRead,
+    Berth, BerthRead, BerthStatus,
     Schedule, ScheduleCreate, ScheduleRead, ScheduleUpdate, ScheduleStatus
 )
 from app.modules.dispatch.services import (
@@ -139,8 +139,8 @@ def get_berth_status(berth_id: int, session: Session = Depends(get_session)):
         select(Schedule).where(
             Schedule.berth_id == berth_id,
             Schedule.status.in_([
-                ScheduleStatus.CHECKED_IN.value,
-                ScheduleStatus.UNLOADING.value
+                ScheduleStatus.CHECKED_IN,
+                ScheduleStatus.UNLOADING
             ])
         )
     ).first()
@@ -321,7 +321,7 @@ def complete_schedule(
     if schedule.berth_id:
         berth = session.get(Berth, schedule.berth_id)
         if berth:
-            berth.status = "available"
+            berth.status = BerthStatus.AVAILABLE
             berth.current_vehicle_id = None
             session.add(berth)
 
@@ -348,15 +348,15 @@ def get_queue_status(session: Session = Depends(get_session)):
     """
     # 统计各状态调度 / Count by status
     queued_count = session.exec(
-        select(Schedule).where(Schedule.status == ScheduleStatus.QUEUED.value)
+        select(Schedule).where(Schedule.status == ScheduleStatus.QUEUED)
     ).all()
 
     checked_in_count = session.exec(
-        select(Schedule).where(Schedule.status == ScheduleStatus.CHECKED_IN.value)
+        select(Schedule).where(Schedule.status == ScheduleStatus.CHECKED_IN)
     ).all()
 
     unloading_count = session.exec(
-        select(Schedule).where(Schedule.status == ScheduleStatus.UNLOADING.value)
+        select(Schedule).where(Schedule.status == ScheduleStatus.UNLOADING)
     ).all()
 
     # 计算平均等待时间 / Calculate average wait time
@@ -385,8 +385,8 @@ def get_dispatch_recommendations(
     pending = session.exec(
         select(Schedule).where(
             Schedule.status.in_([
-                ScheduleStatus.QUEUED.value,
-                ScheduleStatus.CHECKED_IN.value
+                ScheduleStatus.QUEUED,
+                ScheduleStatus.CHECKED_IN
             ])
         )
     ).all()

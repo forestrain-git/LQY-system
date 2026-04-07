@@ -87,6 +87,12 @@ const currentTheme: Ref<Theme> = ref('cursor')
  * 初始化主题 / Initialize theme
  */
 export function initTheme(): void {
+  // SSR安全检查 / SSR safety check
+  if (typeof window === 'undefined') {
+    currentTheme.value = 'cursor'
+    return
+  }
+
   // 尝试从 localStorage 读取 / Try read from localStorage
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved && THEMES.find(t => t.name === saved)) {
