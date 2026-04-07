@@ -137,6 +137,8 @@ def upgrade() -> None:
     op.create_index('ix_schedules_vehicle_id', 'schedules', ['vehicle_id'])
 
     # ============== 工单表 / Work Orders ==============
+    # 注意: equipment_id 外键暂时注释，等待设备模块完成后添加
+    # Note: equipment_id FK temporarily disabled until equipment module is ready
     op.create_table(
         'work_orders',
         sa.Column('id', sa.Integer(), nullable=False, autoincrement=True),
@@ -158,7 +160,7 @@ def upgrade() -> None:
         sa.Column('satisfaction', sa.Integer(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(['equipment_id'], ['devices.id']),
+        # sa.ForeignKeyConstraint(['equipment_id'], ['devices.id']),  # 暂时禁用 / Temporarily disabled
         sa.ForeignKeyConstraint(['vehicle_id'], ['vehicles.id']),
         sa.ForeignKeyConstraint(['creator_id'], ['staff.id']),
         sa.ForeignKeyConstraint(['assignee_id'], ['staff.id']),

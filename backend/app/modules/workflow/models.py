@@ -343,9 +343,11 @@ class WorkOrder(SQLModel, table=True):
     )
 
     # 关联设备 / Associated Equipment
+    # 注意: 外键暂时禁用，等待设备模块完成后添加
+    # Note: FK temporarily disabled until equipment module is ready
     equipment_id: int | None = Field(
         default=None,
-        foreign_key="devices.id",
+        # foreign_key="devices.id",  # 暂时禁用 / Temporarily disabled
         description="关联设备ID / Associated equipment ID",
     )
 
@@ -424,9 +426,11 @@ class WorkOrder(SQLModel, table=True):
     )
 
     # 关联关系 / Relationships
-    equipment: Optional["Device"] = Relationship(
-        sa_relationship_kwargs={"foreign_keys": "WorkOrder.equipment_id"},
-    )
+    # 注意: equipment 关系暂时禁用，等待设备模块完成后添加
+    # Note: equipment relationship temporarily disabled
+    # equipment: Optional["Device"] = Relationship(
+    #     sa_relationship_kwargs={"foreign_keys": "WorkOrder.equipment_id"},
+    # )
     vehicle: Optional["Vehicle"] = Relationship(
         back_populates="work_orders",
         sa_relationship_kwargs={"foreign_keys": "WorkOrder.vehicle_id"},

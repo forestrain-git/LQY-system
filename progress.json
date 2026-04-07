@@ -1,14 +1,14 @@
 {
   "sprint_type": "15h_ai_coding_challenge",
-  "current_phase": "hour_0_2_review",
-  "current_hour": 2,
+  "current_phase": "hour_2_4_review",
+  "current_hour": 4,
   "status": "review_pending",
   "start_time": "2026-04-07T16:30:00Z",
-  "current_time": "2026-04-07T18:30:00Z",
-  "git_commit": "hour-0-2-complete",
+  "current_time": "2026-04-07T22:00:00Z",
+  "git_commit": "6d8e54a",
   "phases": [
-    {"hour": "0-2", "name": "预测算法 + 架构重构 + Mock系统", "status": "completed", "git": "hour-0-2-complete"},
-    {"hour": "2-4", "name": "核心数据模型扩展 + Mock数据", "status": "pending"},
+    {"hour": "0-2", "name": "预测算法 + 架构重构 + Mock系统", "status": "completed", "git": "1f2e985"},
+    {"hour": "2-4", "name": "核心数据模型扩展 + Mock数据", "status": "completed", "git": "6d8e54a"},
     {"hour": "4-6", "name": "智慧调度 + 设计系统 + 硬件模拟", "status": "pending"},
     {"hour": "6-8", "name": "工单系统 + 前端页面框架", "status": "pending"},
     {"hour": "8-10", "name": "设备管理 + 预测展示 + AI助手", "status": "pending"},
@@ -34,14 +34,14 @@
   ],
   "deliverables": {
     "completed": [
-      "app/services/prediction_service.py - 预测服务",
-      "app/api/v1/predictions.py - 预测API路由",
-      "app/core/crud_base.py - 通用CRUD基础类",
-      "app/mocks/fence_simulator.py - 电子围栏模拟",
-      "app/mocks/badge_simulator.py - 人员工牌模拟",
-      "app/mocks/vehicle_gps_simulator.py - 车辆GPS模拟",
-      "app/mocks/weighbridge_simulator.py - 地磅称重模拟",
-      "app/mocks/device_simulator.py - 设备传感器模拟"
+      "Hour 0-2: app/services/prediction_service.py - 预测服务",
+      "Hour 0-2: app/api/v1/predictions.py - 预测API路由",
+      "Hour 0-2: app/core/crud_base.py - 通用CRUD基础类",
+      "Hour 0-2: app/mocks/* - 5个硬件模拟器",
+      "Hour 2-4: app/modules/dispatch/models.py - 调度模型(Vehicle/Berth/Schedule)",
+      "Hour 2-4: app/modules/workflow/models.py - 工单模型(Staff/Department/WorkOrder)",
+      "Hour 2-4: app/mocks/data_generator.py - Mock数据生成器",
+      "Hour 2-4: alembic/versions/* - 数据库迁移脚本"
     ],
     "in_progress": [],
     "pending": []
