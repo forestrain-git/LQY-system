@@ -124,13 +124,13 @@ async def get_equipment_stats(session: AsyncSession = Depends(get_session)):
     status_result = await session.execute(
         select(Equipment.status, func.count(Equipment.id)).group_by(Equipment.status)
     )
-    by_status = {row[0].value: row[1] for row in status_result.all()}
+    by_status = {row[0]: row[1] for row in status_result.all()}
 
     # 类型统计
     type_result = await session.execute(
         select(Equipment.equipment_type, func.count(Equipment.id)).group_by(Equipment.equipment_type)
     )
-    by_type = {row[0].value: row[1] for row in type_result.all()}
+    by_type = {row[0]: row[1] for row in type_result.all()}
 
     # 即将过保修期的设备
     warranty_warning = await session.execute(

@@ -149,19 +149,19 @@ async def get_safety_stats(session: AsyncSession = Depends(get_session)):
     status_result = await session.execute(
         select(SafetyAlert.status, func.count(SafetyAlert.id)).group_by(SafetyAlert.status)
     )
-    by_status = {row[0].value: row[1] for row in status_result.all()}
+    by_status = {row[0]: row[1] for row in status_result.all()}
 
     # 级别统计
     level_result = await session.execute(
         select(SafetyAlert.level, func.count(SafetyAlert.id)).group_by(SafetyAlert.level)
     )
-    by_level = {row[0].value: row[1] for row in level_result.all()}
+    by_level = {row[0]: row[1] for row in level_result.all()}
 
     # 类型统计
     type_result = await session.execute(
         select(SafetyAlert.alert_type, func.count(SafetyAlert.id)).group_by(SafetyAlert.alert_type)
     )
-    by_type = {row[0].value: row[1] for row in type_result.all()}
+    by_type = {row[0]: row[1] for row in type_result.all()}
 
     # 今日告警
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)

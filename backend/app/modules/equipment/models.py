@@ -65,7 +65,7 @@ class Equipment(SQLModel, table=True):
     Represents a sanitation station equipment with full lifecycle info
     """
 
-    __tablename__ = "devices"
+    __tablename__ = "equipment"
 
     id: int | None = Field(default=None, primary_key=True)
 
@@ -204,7 +204,7 @@ class MaintenanceRecord(SQLModel, table=True):
     # 关联设备 / Associated Equipment
     equipment_id: int = Field(
         ...,
-        foreign_key="devices.id",
+        foreign_key="equipment.id",
         nullable=False,
         description="设备ID / Equipment ID",
     )

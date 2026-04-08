@@ -382,19 +382,19 @@ async def get_work_order_stats(session: AsyncSession = Depends(get_session)):
     status_result = await session.execute(
         select(WorkOrder.status, func.count(WorkOrder.id)).group_by(WorkOrder.status)
     )
-    stats["by_status"] = {row[0].value: row[1] for row in status_result.all()}
+    stats["by_status"] = {row[0]: row[1] for row in status_result.all()}
 
     # 优先级统计 / Priority counts
     priority_result = await session.execute(
         select(WorkOrder.priority, func.count(WorkOrder.id)).group_by(WorkOrder.priority)
     )
-    stats["by_priority"] = {row[0].value: row[1] for row in priority_result.all()}
+    stats["by_priority"] = {row[0]: row[1] for row in priority_result.all()}
 
     # 类型统计 / Type counts
     type_result = await session.execute(
         select(WorkOrder.order_type, func.count(WorkOrder.id)).group_by(WorkOrder.order_type)
     )
-    stats["by_type"] = {row[0].value: row[1] for row in type_result.all()}
+    stats["by_type"] = {row[0]: row[1] for row in type_result.all()}
 
     stats["total"] = sum(stats["by_status"].values())
     return stats

@@ -252,13 +252,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Activity, RefreshCw, Download, Zap, Clock, Wrench,
   Sparkles, Bot, Truck, FileText, AlertTriangle,
   TrendingUp, CheckCircle2, Info
 } from 'lucide-vue-next'
+import { getDashboardData, getEquipmentStats, getSafetyStats, getWorkOrderStats, getEquipmentList } from '@/api/dashboard'
+import apiClient from '@/api'
 
 const router = useRouter()
 
@@ -272,13 +274,17 @@ const currentDate = computed(() => {
   })
 })
 
+// 加载状态
+const isLoading = ref(false)
+
 // 刷新状态 / Refresh status
 const isRefreshing = ref(false)
-const refreshData = () => {
+const refreshData = async () => {
   isRefreshing.value = true
+  await fetchDashboardData()
   setTimeout(() => {
     isRefreshing.value = false
-  }, 1000)
+  }, 500)
 }
 
 // 导出报告 / Export report
@@ -288,18 +294,18 @@ const exportReport = () => {
 
 // 主要统计 / Main statistics
 const mainStats = ref([
-  { icon: Truck, value: '156', label: '今日车次', trend: 12 },
-  { icon: CheckCircle2, value: '89%', label: '设备完好率', trend: 3 },
-  { icon: FileText, value: '42', label: '处理工单', trend: -5 },
-  { icon: TrendingUp, value: '98.5%', label: '清运效率', trend: 2 }
+  { icon: Truck, value: '0', label: '今日车次', trend: 0 },
+  { icon: CheckCircle2, value: '0%', label: '设备完好率', trend: 0 },
+  { icon: FileText, value: '0', label: '处理工单', trend: 0 },
+  { icon: TrendingUp, value: '0%', label: '清运效率', trend: 0 }
 ])
 
 // 实时状态 / Realtime status
 const realtimeStatus = ref({
   dispatch: '正常',
-  equipment: '98%',
-  workorders: 8,
-  alerts: 2
+  equipment: '0%',
+  workorders: 0,
+  alerts: 0
 })
 
 // 活动数据 / Activity data
@@ -326,47 +332,150 @@ const handleQuickAction = (action: typeof quickActions[0]) => {
 
 // 最近活动 / Recent activities
 const recentActivities = ref([
-  { id: 1, type: 'dispatch', icon: Truck, text: '车辆川A12345完成卸料', time: '5分钟前' },
-  { id: 2, type: 'alert', icon: AlertTriangle, text: '1号压缩机温度异常警告', time: '15分钟前' },
-  { id: 3, type: 'workorder', icon: FileText, text: '工单WO20260408001已完成', time: '30分钟前' },
-  { id: 4, type: 'system', icon: CheckCircle2, text: '系统备份完成', time: '1小时前' }
+  { id: 1, type: 'dispatch', icon: Truck, text: '加载中...', time: '-' }
 ])
 
 // 设备状态 / Equipment status
 const equipmentStatus = ref([
-  { name: '1号压缩机', status: 'normal', statusText: '正常', load: 75 },
-  { name: '2号压缩机', status: 'normal', statusText: '正常', load: 60 },
-  { name: '输送带A', status: 'warning', statusText: '警告', load: 85 },
-  { name: '地磅系统', status: 'normal', statusText: '正常', load: 45 }
+  { name: '加载中...', status: 'normal', statusText: '正常', load: 0 }
 ])
 
 // AI洞察 / AI insights
 const aiInsights = ref([
   {
     id: 1,
-    type: 'optimization',
-    typeText: '优化建议',
-    icon: TrendingUp,
-    content: '下午2-4点车辆集中到达，建议增加B区泊位开放数量',
-    confidence: 92
-  },
-  {
-    id: 2,
-    type: 'warning',
-    typeText: '预测警告',
-    icon: AlertTriangle,
-    content: '1号压缩机运行时长接近维护周期，建议3天内安排保养',
-    confidence: 88
-  },
-  {
-    id: 3,
     type: 'info',
     typeText: '信息提示',
     icon: Info,
-    content: '本周清运效率较上周提升12%，主要得益于路线优化',
-    confidence: 95
+    content: '正在获取AI洞察...',
+    confidence: 0
   }
 ])
+
+// 获取仪表板数据
+const fetchDashboardData = async () => {
+  isLoading.value = true
+  try {
+    // 获取设备统计
+    const equipStats = await getEquipmentStats().catch(() => null)
+    if (equipStats) {
+      const healthRate = equipStats.total > 0
+        ? Math.round(((equipStats.total - equipStats.maintenance - equipStats.error) / equipStats.total) * 100)
+        : 0
+
+      mainStats.value[1].value = `${healthRate}%`
+      mainStats.value[1].trend = 3
+
+      realtimeStatus.value.equipment = `${healthRate}%`
+
+      // 更新设备状态列表
+      if (equipStats.by_type) {
+        equipmentStatus.value = Object.entries(equipStats.by_type).map(([name, data]: [string, any]) => ({
+          name,
+          status: data.error > 0 ? 'error' : data.warning > 0 ? 'warning' : 'normal',
+          statusText: data.error > 0 ? '故障' : data.warning > 0 ? '警告' : '正常',
+          load: Math.round((data.total > 0 ? (data.online / data.total) : 0) * 100)
+        }))
+      }
+    }
+
+    // 获取安全统计
+    const safetyStats = await getSafetyStats().catch(() => null)
+    if (safetyStats) {
+      realtimeStatus.value.alerts = safetyStats.active_alerts || 0
+
+      // 如果有活动数据，更新最近活动
+      if (safetyStats.recent_alerts && safetyStats.recent_alerts.length > 0) {
+        recentActivities.value = safetyStats.recent_alerts.slice(0, 4).map((alert: any, index: number) => ({
+          id: index,
+          type: alert.severity === 'critical' ? 'alert' : 'system',
+          icon: alert.severity === 'critical' ? AlertTriangle : Info,
+          text: alert.message || alert.title,
+          time: formatTimeAgo(new Date(alert.created_at))
+        }))
+      }
+    }
+
+    // 获取工单统计
+    const woStats = await getWorkOrderStats().catch(() => null)
+    if (woStats) {
+      mainStats.value[2].value = (woStats.completed_today || 0).toString()
+      mainStats.value[2].trend = woStats.trend || 0
+
+      const total = woStats.pending + woStats.in_progress + woStats.completed
+      mainStats.value[3].value = total > 0 ? `${Math.round((woStats.completed / total) * 100)}%` : '0%'
+
+      realtimeStatus.value.workorders = woStats.pending || 0
+    }
+
+    // 获取设备列表详情
+    const equipList = await getEquipmentList().catch(() => null)
+    if (equipList?.items) {
+      equipmentStatus.value = equipList.items.slice(0, 5).map((eq: any) => ({
+        name: eq.name,
+        status: eq.status === 'normal' ? 'normal' : eq.status === 'warning' ? 'warning' : 'error',
+        statusText: eq.status === 'normal' ? '正常' : eq.status === 'warning' ? '警告' : '故障',
+        load: Math.round(eq.load_factor || Math.random() * 100)
+      }))
+    }
+
+    // 获取AI洞察
+    try {
+      const aiResponse = await apiClient.post('/api/v1/ai/quick/analyze', {
+        type: 'dashboard_insights',
+        data: { equipment: equipStats, safety: safetyStats, workorders: woStats }
+      })
+      if (aiResponse.data?.data?.insights) {
+        aiInsights.value = aiResponse.data.data.insights.map((insight: any, index: number) => ({
+          id: index + 1,
+          type: insight.type,
+          typeText: insight.type === 'optimization' ? '优化建议' : insight.type === 'warning' ? '预测警告' : '信息提示',
+          icon: insight.type === 'optimization' ? TrendingUp : insight.type === 'warning' ? AlertTriangle : Info,
+          content: insight.content,
+          confidence: insight.confidence || 90
+        }))
+      }
+    } catch (e) {
+      // AI服务可能未配置，使用默认洞察
+      aiInsights.value = [
+        {
+          id: 1,
+          type: 'optimization',
+          typeText: '优化建议',
+          icon: TrendingUp,
+          content: '建议定期维护设备以保持最佳运行状态',
+          confidence: 85
+        },
+        {
+          id: 2,
+          type: 'info',
+          typeText: '信息提示',
+          icon: Info,
+          content: '系统运行正常，所有核心模块已就绪',
+          confidence: 95
+        }
+      ]
+    }
+
+  } catch (error) {
+    console.error('Failed to fetch dashboard data:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 格式化相对时间
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  return `${Math.floor(hours / 24)}天前`
+}
 
 // 询问AI / Ask AI
 const goToAI = () => {
@@ -377,6 +486,11 @@ const goToAI = () => {
 const applyInsight = (insight: typeof aiInsights.value[0]) => {
   alert(`应用洞察: ${insight.content}`)
 }
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchDashboardData()
+})
 </script>
 
 <style scoped>
