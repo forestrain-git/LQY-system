@@ -47,14 +47,14 @@
     <div class="ai-chat">
       <!-- 欢迎界面 / Welcome Screen -->
       <div v-if="!currentConversation" class="welcome-screen">
-        <div class="welcome-content"
+        <div class="welcome-content">
           <Bot class="welcome-icon" />
           <h1 class="welcome-title">龙泉驿环卫智能助手</h1>
           <p class="welcome-desc">
             我可以帮你处理设备管理、车辆调度、工单处理等问题
           </p>
 
-          <div class="quick-actions"
+          <div class="quick-actions">
             <div class="quick-actions__title">快速开始</div>
             <div class="quick-actions__grid">
               <button
@@ -79,8 +79,7 @@
           class="message"
           :class="`message--${message.role}`"
         >
-          <div class="message__avatar"
-003e
+          <div class="message__avatar">
             <Bot v-if="message.role === 'assistant'" />
             <User v-else />
           </div>
@@ -112,7 +111,7 @@
 
       <!-- 输入区 / Input Area -->
       <div class="input-area">
-        <div class="input-wrapper"
+        <div class="input-wrapper">
           <textarea
             v-model="inputMessage"
             class="input-field"
@@ -263,10 +262,18 @@ const scrollToBottom = () => {
   }
 }
 
+// HTML转义函数 / Escape HTML
+const escapeHtml = (text: string): string => {
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
+
 // 格式化消息 / Format message
 const formatMessage = (content: string) => {
-  // 简单 Markdown 支持
-  return content
+  // 先转义HTML，再添加样式（防止XSS）
+  const escaped = escapeHtml(content)
+  return escaped
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')

@@ -79,7 +79,12 @@
         </div>
 
         <div class="section-body">
-          <div v-if="filteredAlerts.length === 0" class="empty-state">
+          <div v-if="loading" class="loading-state">
+            <RefreshCw class="spinning" />
+            <p>加载中...</p>
+          </div>
+
+          <div v-else-if="filteredAlerts.length === 0" class="empty-state">
             <ShieldCheck class="empty-state__icon" />
             <p>暂无安全告警</p>
           </div>
@@ -94,8 +99,8 @@
               <div class="alert-item__indicator"></div>
               <div class="alert-item__content">
                 <div class="alert-item__header">
-                  <span class="alert-item__type">{{ alert.typeText }}</span>
-                  <span class="alert-item__time">{{ alert.time }}</span>
+                  <span class="alert-item__type">{{ getAlertTypeText(alert.alert_type) }}</span>
+                  <span class="alert-item__time">{{ formatTime(alert.created_at) }}</span>
                 </div>
                 <div class="alert-item__title">{{ alert.title }}</div>
                 <div class="alert-item__location">
@@ -108,15 +113,19 @@
                   v-if="alert.status === 'active'"
                   class="alert-btn alert-btn--primary"
                   @click="acknowledgeAlert(alert.id)"
+                  :disabled="processing[alert.id]"
                 >
-                  确认
+                  <RefreshCw v-if="processing[alert.id]" class="spinning" />
+                  <span v-else>确认</span>
                 </button>
                 <button
                   v-if="alert.status !== 'resolved'"
                   class="alert-btn"
                   @click="resolveAlert(alert.id)"
+                  :disabled="processing[alert.id]"
                 >
-                  解决
+                  <CheckCircle2 v-if="processing[alert.id]" class="spinning" />
+                  <span v-else>解决</span>
                 </button>
                 <span v-else class="alert-item__resolved">
                   <CheckCircle2 class="alert-item__resolved-icon" />
@@ -138,13 +147,18 @@
         </div>
 
         <div class="section-body">
-          <div class="risk-chart">
+          <div v-if="loading" class="loading-state">
+            <RefreshCw class="spinning" />
+            <p>加载中...</p>
+          </div>
+
+          <div v-else class="risk-chart">
             <div
               v-for="(value, key) in riskDistribution"
               :key="key"
               class="risk-bar"
             >
-              <div class="risk-bar__label">{{ key }}</div>
+              <div class="risk-bar__label">{{ getRiskLabel(key) }}</div>
               <div class="risk-bar__track">
                 <div
                   class="risk-bar__fill"
@@ -161,11 +175,12 @@
               <Bot class="ai-recommendations__icon" />
               AI建议
             </h3>
-            <ul class="ai-recommendations__list">
+            <ul v-if="recommendations && recommendations.length > 0" class="ai-recommendations__list">
               <li v-for="(rec, index) in recommendations" :key="index">
                 {{ rec }}
               </li>
             </ul>
+            <p v-else class="ai-recommendations__empty">暂无建议</p>
           </div>
         </div>
       </div>
@@ -174,69 +189,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import {
   AlertTriangle, ShieldAlert, Activity, CheckCircle2,
-  Bell, ShieldCheck, MapPin, PieChart, Bot
+  Bell, ShieldCheck, MapPin, PieChart, Bot, RefreshCw
 } from 'lucide-vue-next'
+import {
+  getSafetyAlerts,
+  getActiveAlertsCount,
+  getRiskDistribution,
+  getSafetyRecommendations,
+  acknowledgeAlert as apiAcknowledgeAlert,
+  resolveAlert as apiResolveAlert,
+  type SafetyAlert
+} from '@/api/safety'
+import { getSafetyStats } from '@/api/dashboard'
 
-// 统计数据 / Statistics
+// 加载状态
+const loading = ref(false)
+const processing = ref<Record<number, boolean>>({})
+
+// 统计数据
 const stats = ref({
-  activeAlerts: 3,
-  todayAlerts: 8,
-  riskLevel: '中',
+  activeAlerts: 0,
+  todayAlerts: 0,
+  riskLevel: '低',
   resolvedThisWeek: 24
 })
 
-// 过滤器 / Filters
+// 过滤器
 const filterStatus = ref('')
 const filterLevel = ref('')
 
-// 告警数据 / Alert data
-const alerts = ref([
-  {
-    id: 1,
-    type: 'fence_violation',
-    typeText: '电子围栏',
-    level: 'critical',
-    title: '未授权车辆进入危险区域',
-    location: '压缩区A',
-    status: 'active',
-    time: '10分钟前'
-  },
-  {
-    id: 2,
-    type: 'equipment_failure',
-    typeText: '设备故障',
-    level: 'warning',
-    title: '1号压缩机温度异常',
-    location: '压缩区A',
-    status: 'acknowledged',
-    time: '30分钟前'
-  },
-  {
-    id: 3,
-    type: 'ppe_violation',
-    typeText: '安全装备',
-    level: 'warning',
-    title: '检测到人员未佩戴安全帽',
-    location: '卸料区B',
-    status: 'active',
-    time: '1小时前'
-  },
-  {
-    id: 4,
-    type: 'fire_risk',
-    typeText: '火灾风险',
-    level: 'emergency',
-    title: '烟雾传感器触发报警',
-    location: '存储区C',
-    status: 'resolved',
-    time: '2小时前'
-  }
-])
+// 告警数据
+const alerts = ref<SafetyAlert[]>([])
+const riskDistribution = ref<Record<string, number>>({
+  'electronic_fence': 35,
+  'equipment_failure': 25,
+  'personnel_safety': 20,
+  'fire_risk': 15,
+  'other': 5
+})
+const recommendations = ref<string[]>([])
 
-// 过滤后的告警 / Filtered alerts
+// 过滤后的告警
 const filteredAlerts = computed(() => {
   return alerts.value.filter(alert => {
     if (filterStatus.value && alert.status !== filterStatus.value) return false
@@ -245,38 +242,146 @@ const filteredAlerts = computed(() => {
   })
 })
 
-// 风险分布 / Risk distribution
-const riskDistribution = ref({
-  'electronic_fence': 35,
-  'equipment_failure': 25,
-  'personnel_safety': 20,
-  'fire_risk': 15,
-  'other': 5
+// 获取告警类型文本
+const getAlertTypeText = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    'fence_violation': '电子围栏',
+    'unauthorized_access': '未授权进入',
+    'equipment_failure': '设备故障',
+    'hazardous_material': '危险品泄漏',
+    'fire_risk': '火灾风险',
+    'ppe_violation': '安全装备',
+    'vehicle_incident': '车辆事故',
+    'emergency': '紧急情况'
+  }
+  return typeMap[type] || type
+}
+
+// 获取风险标签
+const getRiskLabel = (key: string): string => {
+  const labelMap: Record<string, string> = {
+    'electronic_fence': '电子围栏',
+    'equipment_failure': '设备故障',
+    'personnel_safety': '人员安全',
+    'fire_risk': '火灾风险',
+    'other': '其他'
+  }
+  return labelMap[key] || key
+}
+
+// 格式化时间
+const formatTime = (time: string): string => {
+  const date = new Date(time)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  return date.toLocaleDateString('zh-CN')
+}
+
+// 获取统计数据
+const fetchStats = async () => {
+  try {
+    const activeCount = await getActiveAlertsCount()
+    stats.value.activeAlerts = activeCount
+
+    const safetyStats = await getSafetyStats()
+    if (safetyStats) {
+      stats.value.todayAlerts = safetyStats.today_alerts || 0
+      stats.value.riskLevel = safetyStats.risk_level || '低'
+    }
+  } catch (error) {
+    console.error('Failed to fetch stats:', error)
+  }
+}
+
+// 获取告警列表
+const fetchAlerts = async () => {
+  loading.value = true
+  try {
+    const response = await getSafetyAlerts(1, 50)
+    alerts.value = response.items || []
+  } catch (error) {
+    console.error('Failed to fetch alerts:', error)
+    ElMessage.error('获取告警列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 获取风险分布
+const fetchRiskDistribution = async () => {
+  try {
+    const distribution = await getRiskDistribution()
+    riskDistribution.value = distribution
+  } catch (error) {
+    console.error('Failed to fetch risk distribution:', error)
+  }
+}
+
+// 获取AI建议
+const fetchRecommendations = async () => {
+  try {
+    const recs = await getSafetyRecommendations()
+    recommendations.value = recs
+  } catch (error) {
+    console.error('Failed to fetch recommendations:', error)
+  }
+}
+
+// 确认告警
+const acknowledgeAlert = async (id: number) => {
+  processing.value[id] = true
+  try {
+    await apiAcknowledgeAlert(id)
+    ElMessage.success('告警已确认')
+    // 更新本地状态
+    const alert = alerts.value.find(a => a.id === id)
+    if (alert) {
+      alert.status = 'acknowledged'
+    }
+    // 刷新统计
+    await fetchStats()
+  } catch (error) {
+    console.error('Failed to acknowledge alert:', error)
+    ElMessage.error('确认失败')
+  } finally {
+    processing.value[id] = false
+  }
+}
+
+// 解决告警
+const resolveAlert = async (id: number) => {
+  processing.value[id] = true
+  try {
+    await apiResolveAlert(id)
+    ElMessage.success('告警已解决')
+    // 更新本地状态
+    const alert = alerts.value.find(a => a.id === id)
+    if (alert) {
+      alert.status = 'resolved'
+    }
+    // 刷新统计
+    await fetchStats()
+  } catch (error) {
+    console.error('Failed to resolve alert:', error)
+    ElMessage.error('解决失败')
+  } finally {
+    processing.value[id] = false
+  }
+}
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchStats()
+  fetchAlerts()
+  fetchRiskDistribution()
+  fetchRecommendations()
 })
-
-// AI建议 / AI recommendations
-const recommendations = ref([
-  '建议加强电子围栏区域的监控频率',
-  '1号压缩机需要安排预防性维护',
-  '卸料区需要增加安全标识提醒',
-  '建议对全员进行安全培训'
-])
-
-// 确认告警 / Acknowledge alert
-const acknowledgeAlert = (id: number) => {
-  const alert = alerts.value.find(a => a.id === id)
-  if (alert) {
-    alert.status = 'acknowledged'
-  }
-}
-
-// 解决告警 / Resolve alert
-const resolveAlert = (id: number) => {
-  const alert = alerts.value.find(a => a.id === id)
-  if (alert) {
-    alert.status = 'resolved'
-  }
-}
 </script>
 
 <style scoped>
@@ -411,6 +516,25 @@ const resolveAlert = (id: number) => {
 
 .section-body {
   padding: var(--space-4);
+}
+
+/* 加载状态 / Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  color: var(--color-text-tertiary);
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 空状态 / Empty State */
@@ -551,10 +675,18 @@ const resolveAlert = (id: number) => {
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
-.alert-btn:hover {
+.alert-btn:hover:not(:disabled) {
   background-color: var(--color-bg-secondary);
+}
+
+.alert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .alert-btn--primary {
@@ -563,7 +695,7 @@ const resolveAlert = (id: number) => {
   border-color: var(--color-primary-600);
 }
 
-.alert-btn--primary:hover {
+.alert-btn--primary:hover:not(:disabled) {
   background-color: var(--color-primary-700);
 }
 
@@ -687,6 +819,13 @@ const resolveAlert = (id: number) => {
   height: 6px;
   background-color: var(--color-primary-500);
   border-radius: var(--radius-full);
+}
+
+.ai-recommendations__empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-4);
 }
 
 @media (max-width: 1024px) {

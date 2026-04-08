@@ -21,6 +21,7 @@ from app.modules.workflow.api import router as workflow_router
 from app.modules.equipment.api import router as equipment_router
 from app.modules.safety.api import router as safety_router
 from app.modules.ai.api import router as ai_router
+from app.modules.auth.api import router as auth_router
 from app.api.websocket import manager, router as websocket_router
 from app.config import settings
 from app.database import close_db
@@ -129,6 +130,7 @@ app.add_middleware(LoggingMiddleware)
 register_exception_handlers(app)
 
 # 注册路由
+app.include_router(auth_router, prefix="/api/v1")  # 认证路由 / Auth routes
 app.include_router(devices_router, prefix="/api/v1")
 app.include_router(sensor_data_router, prefix="/api/v1")
 app.include_router(alerts_router, prefix="/api/v1")

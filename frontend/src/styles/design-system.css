@@ -21,10 +21,10 @@
   --radius-2xl: 16px;
   --radius-full: 9999px;
 
-  /* 字体 / Typography */
-  --font-sans: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-display: 'Inter', 'Noto Sans SC', sans-serif;
+  /* 字体 / Typography - 强制中文字体回退 */
+  --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Microsoft YaHei Mono', monospace;
+  --font-display: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
 
   /* 字体大小 / Font sizes */
   --text-xs: 12px;

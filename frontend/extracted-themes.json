@@ -1,0 +1,287 @@
+[
+  {
+    "name": "airbnb",
+    "colors": {
+      "bgPage": "rgb(26, 26, 26)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "airtable",
+    "colors": {
+      "bgPage": "rgb(24, 29, 38)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "apple",
+    "colors": {
+      "bgPage": "rgb(0, 0, 0)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "bmw",
+    "colors": {
+      "bgPage": "rgb(26, 26, 26)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "cal",
+    "colors": {
+      "bgPage": "rgb(10, 10, 10)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "claude",
+    "colors": {
+      "bgPage": "#141413",
+      "bgSurface": "",
+      "bgCard": "#30302e",
+      "bgHover": "",
+      "textPrimary": "#faf9f5",
+      "textSecondary": "#87867f",
+      "textMuted": "#b0aea5",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "#30302e",
+      "isDark": true
+    }
+  },
+  {
+    "name": "clay",
+    "colors": {
+      "bgPage": "rgb(26, 24, 21)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "clickhouse",
+    "colors": {
+      "bgPage": "#000000",
+      "bgSurface": "",
+      "bgCard": "transparent",
+      "bgHover": "",
+      "textPrimary": "#ffffff",
+      "textSecondary": "#a0a0a0",
+      "textMuted": "#585858",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "rgba(65,65,65,0.8)",
+      "isDark": true
+    }
+  },
+  {
+    "name": "cohere",
+    "colors": {
+      "bgPage": "#17171c",
+      "bgSurface": "",
+      "bgCard": "#212121",
+      "bgHover": "",
+      "textPrimary": "#fafafa",
+      "textSecondary": "#d9d9dd",
+      "textMuted": "#93939f",
+      "primary": "",
+      "secondary": "#1863dc",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "#333333",
+      "isDark": true
+    }
+  },
+  {
+    "name": "coinbase",
+    "colors": {
+      "bgPage": "rgb(10, 11, 13)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "composio",
+    "colors": {
+      "bgPage": "rgb(0, 0, 0)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "cursor",
+    "colors": {
+      "bgPage": "rgb(26, 25, 21)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "#e6e5e0",
+      "textSecondary": "rgba(230, 229, 224, 0.55)",
+      "textMuted": "rgba(230, 229, 224, 0.35)",
+      "primary": "",
+      "secondary": "#f54e00",
+      "success": "#2fba8a",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "elevenlabs",
+    "colors": {
+      "bgPage": "rgb(10, 10, 10)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "",
+      "textSecondary": "",
+      "textMuted": "",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  },
+  {
+    "name": "expo",
+    "colors": {
+      "bgPage": "#171717",
+      "bgSurface": "",
+      "bgCard": "#1a1a1a",
+      "bgHover": "",
+      "textPrimary": "#ffffff",
+      "textSecondary": "#b0b4ba",
+      "textMuted": "#999999",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "#363a3f",
+      "isDark": true
+    }
+  },
+  {
+    "name": "ferrari",
+    "colors": {
+      "bgPage": "rgb(24, 24, 24)",
+      "bgSurface": "",
+      "bgCard": "",
+      "bgHover": "",
+      "textPrimary": "#FFFFFF",
+      "textSecondary": "#D2D2D2",
+      "textMuted": "#969696",
+      "primary": "",
+      "secondary": "",
+      "success": "",
+      "warning": "",
+      "danger": "",
+      "borderColor": "",
+      "isDark": true
+    }
+  }
+]

@@ -1,0 +1,266 @@
+/**
+ * 专业配色系统 / Professional Color System
+ *
+ * 2026年业界最佳实践参考：
+ * - GitHub Dark v2 (高对比度深色模式)
+ * - Linear App (专业工具类配色)
+ * - Vercel Geist (现代简约风格)
+ * - Tailwind CSS v4 (色彩系统)
+ * - Radix UI (可访问性优先)
+ *
+ * 核心原则：
+ * 1. 高对比度 - 符合WCAG 2.1 AA标准 (4.5:1)
+ * 2. 色彩层次 - 清晰的视觉层级
+ * 3. 数据可视化 - 鲜明的图表色彩
+ * 4. 现代感 - 玻璃拟态、微妙阴影
+ */
+
+/* ==================== 基础设计令牌 / Design Tokens ==================== */
+:root {
+  /* 主色调 - 青龙绿 (保持品牌一致性) */
+  --primary-50: #ecfdf5;
+  --primary-100: #d1fae5;
+  --primary-200: #a7f3d0;
+  --primary-300: #6ee7b7;
+  --primary-400: #34d399;
+  --primary-500: #10b981;  /* 主色 */
+  --primary-600: #059669;
+  --primary-700: #047857;
+  --primary-800: #065f46;
+  --primary-900: #064e3b;
+
+  /* 强调色 - 更鲜明的数据可视化色彩 */
+  --accent-cyan: #06b6d4;      /* 信息 - 青色 */
+  --accent-blue: #3b82f6;      /* 主要 - 蓝色 */
+  --accent-purple: #8b5cf6;    /* 特殊 - 紫色 */
+  --accent-pink: #ec4899;      /* 高亮 - 粉色 */
+  --accent-orange: #f97316;    /* 警告 - 橙色 */
+  --accent-red: #ef4444;       /* 危险 - 红色 */
+  --accent-yellow: #eab308;    /* 注意 - 黄色 */
+  --accent-green: #22c55e;     /* 成功 - 绿色 */
+
+  /* 图表配色方案 - 高对比度 */
+  --chart-primary: #10b981;
+  --chart-secondary: #06b6d4;
+  --chart-tertiary: #8b5cf6;
+  --chart-quaternary: #f97316;
+  --chart-quinary: #ec4899;
+
+  /* 中性灰阶 - 精心调校的灰度 */
+  --gray-0: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --gray-950: #030712;
+
+  /* 语义化颜色 */
+  --success: #22c55e;
+  --success-light: #86efac;
+  --success-dark: #15803d;
+  --warning: #f59e0b;
+  --warning-light: #fcd34d;
+  --warning-dark: #b45309;
+  --error: #ef4444;
+  --error-light: #fca5a5;
+  --error-dark: #b91c1c;
+  --info: #3b82f6;
+  --info-light: #93c5fd;
+  --info-dark: #1d4ed8;
+}
+
+/* ==================== 深色主题 / Dark Theme - 高对比度版本 ==================== */
+[data-theme="dark"],
+:root {
+  /* 背景层 - 提升亮度，增加可见性 */
+  --bg-base: #0f172a;           /* 深蓝灰底层 - 不再是纯黑 */
+  --bg-elevated: #1e293b;       /* 提升层 - 明显亮于底层 */
+  --bg-overlay: #334155;        /* 覆盖层 - 悬停状态 */
+  --bg-floating: #475569;       /* 浮动层 - 下拉菜单 */
+
+  /* 文字颜色 - 高对比度 */
+  --text-primary: #fafafa;      /* 主要文字 - 近白 */
+  --text-secondary: #e4e4e7;    /* 次要文字 - 浅灰 */
+  --text-tertiary: #a1a1aa;     /* 第三级 - 中灰 */
+  --text-quaternary: #71717a;   /* 第四级 - 深灰 */
+  --text-disabled: #52525b;     /* 禁用状态 */
+
+  /* 边框颜色 */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --border-focus: var(--primary-500);
+
+  /* 阴影 - 微妙的光晕效果 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+
+  /* 渐变 */
+  --gradient-primary: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  --gradient-success: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  --gradient-error: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+  --gradient-overlay: linear-gradient(180deg, rgba(9, 9, 11, 0) 0%, rgba(9, 9, 11, 0.8) 100%);
+}
+
+/* ==================== 浅色主题 / Light Theme ==================== */
+[data-theme="light"] {
+  /* 背景层 */
+  --bg-base: #ffffff;
+  --bg-elevated: #f9fafb;
+  --bg-overlay: #f3f4f6;
+  --bg-floating: #e5e7eb;
+
+  /* 文字颜色 */
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6b7280;
+  --text-quaternary: #9ca3af;
+  --text-disabled: #d1d5db;
+
+  /* 边框颜色 */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-default: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.2);
+  --border-focus: var(--primary-600);
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+/* ==================== 玻璃拟态 / Glassmorphism ==================== */
+.glass {
+  background: rgba(24, 24, 27, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: rgba(24, 24, 27, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ==================== 图表配色 / Chart Colors ==================== */
+.chart-color-1 { color: #10b981; }  /* 主色绿 */
+.chart-color-2 { color: #06b6d4; }  /* 青色 */
+.chart-color-3 { color: #8b5cf6; }  /* 紫色 */
+.chart-color-4 { color: #f97316; }  /* 橙色 */
+.chart-color-5 { color: #ec4899; }  /* 粉色 */
+.chart-color-6 { color: #eab308; }  /* 黄色 */
+
+.chart-bg-1 { background-color: #10b981; }
+.chart-bg-2 { background-color: #06b6d4; }
+.chart-bg-3 { background-color: #8b5cf6; }
+.chart-bg-4 { background-color: #f97316; }
+.chart-bg-5 { background-color: #ec4899; }
+.chart-bg-6 { background-color: #eab308; }
+
+/* 图表渐变 */
+.chart-gradient-1 {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+.chart-gradient-2 {
+  background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.chart-gradient-3 {
+  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+/* ==================== 状态指示器 / Status Indicators ==================== */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-online {
+  background-color: #22c55e;
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px rgba(34, 197, 94, 0.3);
+}
+
+.status-busy {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px rgba(245, 158, 11, 0.3);
+}
+
+.status-offline {
+  background-color: #71717a;
+}
+
+.status-error {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px rgba(239, 68, 68, 0.3);
+}
+
+/* ==================== 动画 / Animations ==================== */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ==================== 响应式断点 / Responsive Breakpoints ==================== */
+@media (max-width: 640px) {
+  :root {
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-lg: 16px;
+    --text-xl: 18px;
+  }
+}
+
+/* ==================== 可访问性 / Accessibility ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --border-default: rgba(255, 255, 255, 0.3);
+  }
+}

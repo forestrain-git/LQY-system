@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAlertsStore } from '@/stores/alerts'
+import { Bell, Clock } from '@element-plus/icons-vue'
 import ConnectionStatus from '@/components/common/ConnectionStatus.vue'
 
 const alertsStore = useAlertsStore()

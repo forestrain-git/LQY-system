@@ -13,7 +13,7 @@
     <button
       class="theme-switcher__trigger"
       @click="isOpen = !isOpen"
-      :title="$t('theme.switch')"
+      :title="'切换主题'"
     >
       <component :is="currentIcon" class="theme-switcher__icon" />
       <span class="theme-switcher__label">{{ themeConfig.label }}</span>
@@ -24,7 +24,7 @@
     <Transition name="dropdown">
       <div v-if="isOpen" class="theme-switcher__dropdown" v-click-outside="close">
         <div class="theme-switcher__header">
-          {{ $t('theme.select') }}
+          选择主题
         </div>
 
         <div class="theme-switcher__options">

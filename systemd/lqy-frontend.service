@@ -1,0 +1,15 @@
+[Unit]
+Description=龙泉驿环卫智能体 - 前端服务
+After=network.target lqy-backend.service
+
+[Service]
+Type=simple
+User=lqy
+Group=lqy
+WorkingDirectory=/opt/lqy-system/frontend
+ExecStart=/usr/bin/serve dist -l 8080 --single
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

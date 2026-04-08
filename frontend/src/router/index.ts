@@ -6,13 +6,19 @@
  */
 
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import MainLayout from '@/layouts/MainLayout.vue'
+import MainLayout from '@/components/layout/MainLayout.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import DeviceList from '@/views/devices/DeviceList.vue'
 import AlertList from '@/views/alerts/AlertList.vue'
 
 // 路由配置 / Route configuration
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/LoginView.vue'),
+    meta: { title: '登录', public: true }
+  },
   {
     path: '/',
     component: MainLayout,
@@ -94,7 +100,18 @@ router.beforeEach((to, from, next) => {
     document.title = `${to.meta.title} - 龙泉驿环卫智能体`
   }
 
-  // 这里可以添加权限检查 / Can add auth check here
+  // 检查登录状态 / Check auth status
+  const token = localStorage.getItem('auth-token')
+  if (!to.meta.public && !token) {
+    next('/login')
+    return
+  }
+
+  if (to.path === '/login' && token) {
+    next('/')
+    return
+  }
+
   next()
 })
 

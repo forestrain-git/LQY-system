@@ -19,7 +19,7 @@
         <button
           class="sidebar__toggle"
           @click="toggleSidebar"
-          :title="isSidebarCollapsed ? $t('sidebar.expand') : $t('sidebar.collapse')"
+          :title="isSidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         >
           <ChevronLeft v-if="!isSidebarCollapsed" />
           <ChevronRight v-else />
@@ -65,7 +65,7 @@
             <Search class="search-box__icon" />
             <input
               type="text"
-              :placeholder="$t('search.placeholder')"
+              :placeholder="'搜索...'"
               class="search-box__input"
             />
           </div>
@@ -98,16 +98,16 @@
                 <div class="user-menu__divider"></div>
                 <router-link to="/profile" class="user-menu__item">
                   <User class="user-menu__item-icon" />
-                  {{ $t('user.profile') }}
+                  个人资料
                 </router-link>
                 <router-link to="/settings" class="user-menu__item">
                   <Settings class="user-menu__item-icon" />
-                  {{ $t('user.settings') }}
+                  设置
                 </router-link>
                 <div class="user-menu__divider"></div>
                 <button class="user-menu__item user-menu__item--danger" @click="logout">
                   <LogOut class="user-menu__item-icon" />
-                  {{ $t('user.logout') }}
+                  退出登录
                 </button>
               </div>
             </Transition>

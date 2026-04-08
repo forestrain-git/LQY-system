@@ -113,7 +113,7 @@ class SafetyAlert(SQLModel, table=True):
     # 关联对象 / Related Objects
     equipment_id: int | None = Field(
         default=None,
-        foreign_key="devices.id",
+        foreign_key="equipment.id",
         description="关联设备ID / Related equipment ID",
     )
     vehicle_id: int | None = Field(

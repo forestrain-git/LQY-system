@@ -1,0 +1,192 @@
+/* ==================== 全局紧急修复 - 高对比度主题系统 ==================== */
+
+/* 强制所有页面使用高对比度背景 */
+html, body, #app {
+  background-color: var(--bg-base, #1e293b) !important;
+  color: var(--text-primary, #ffffff) !important;
+}
+
+/* 所有视图容器 */
+[class*="-view"], [class*="-board"], [class*="-page"] {
+  background-color: var(--bg-base, #1e293b) !important;
+  color: var(--text-primary, #ffffff) !important;
+  min-height: 100vh;
+}
+
+/* 强制卡片高对比度 */
+[class*="stat-card"],
+[class*="dashboard-section"],
+[class*="section-large"],
+[class*="info-card"],
+[class*="data-card"],
+.el-card {
+  background: var(--bg-elevated, #334155) !important;
+  border: 2px solid var(--border-default, rgba(255,255,255,0.2)) !important;
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.3)) !important;
+  border-radius: 12px !important;
+}
+
+/* 强制文字可见 */
+[class*="__label"],
+[class*="__title"],
+[class*="__subtitle"],
+[class*="-title"],
+[class*="-label"] {
+  color: var(--text-secondary, #f1f5f9) !important;
+}
+
+[class*="__value"],
+[class*="-value"] {
+  color: var(--text-primary, #ffffff) !important;
+}
+
+/* 图表区域强制可见 */
+[class*="chart"],
+[class*="activity-chart"],
+[class*="trend-chart"] {
+  background: var(--bg-base, #1e293b) !important;
+  border: 2px solid var(--border-default, rgba(255,255,255,0.2)) !important;
+  border-radius: 12px !important;
+}
+
+/* 状态标签强制样式 */
+[class*="status-"],
+[class*="badge-"] {
+  font-weight: 600 !important;
+}
+
+/* 按钮强制样式 */
+.el-button {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.el-button--primary {
+  background: var(--gradient-primary, linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)) !important;
+  border: 2px solid #3b82f6 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+.el-button--default {
+  background-color: var(--bg-elevated, #334155) !important;
+  border: 2px solid var(--border-default, rgba(255,255,255,0.2)) !important;
+  color: var(--text-primary, #ffffff) !important;
+}
+
+/* 菜单项高对比度 */
+.el-menu-item {
+  color: var(--text-tertiary, #e2e8f0) !important;
+  font-weight: 500 !important;
+}
+
+.el-menu-item.is-active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+  color: #60a5fa !important;
+  border-left: 4px solid #3b82f6 !important;
+  font-weight: 600 !important;
+}
+
+.el-menu-item:hover {
+  background-color: var(--bg-overlay, #475569) !important;
+  color: var(--text-secondary, #f1f5f9) !important;
+}
+
+/* 输入框 */
+.el-input__wrapper {
+  background-color: var(--bg-elevated, #334155) !important;
+  border: 2px solid var(--border-default, rgba(255,255,255,0.2)) !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+}
+
+.el-input__wrapper:hover {
+  border-color: var(--border-strong, rgba(255,255,255,0.4)) !important;
+}
+
+.el-input__wrapper.is-focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+.el-input__inner {
+  color: var(--text-primary, #ffffff) !important;
+  font-size: 1rem !important;
+}
+
+.el-input__inner::placeholder {
+  color: var(--text-quaternary, #94a3b8) !important;
+}
+
+/* 表格 */
+.el-table {
+  background-color: transparent !important;
+  color: var(--text-primary, #ffffff) !important;
+  --el-table-border-color: var(--border-default, rgba(255,255,255,0.2));
+  --el-table-header-bg-color: var(--bg-overlay, #475569);
+  --el-table-row-hover-bg-color: var(--bg-overlay, #475569);
+}
+
+.el-table th.el-table__cell {
+  background-color: var(--bg-overlay, #475569) !important;
+  color: var(--text-primary, #ffffff) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-size: 0.75rem !important;
+  padding: 16px !important;
+  border-bottom: 2px solid var(--border-default, rgba(255,255,255,0.2)) !important;
+}
+
+.el-table td.el-table__cell {
+  color: var(--text-secondary, #f1f5f9) !important;
+  border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.1)) !important;
+  padding: 16px !important;
+}
+
+/* 标签 */
+.el-tag {
+  background-color: var(--bg-overlay, #475569) !important;
+  border: 2px solid var(--border-default, rgba(255,255,255,0.2)) !important;
+  color: var(--text-secondary, #f1f5f9) !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+}
+
+.el-tag--success {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  color: #34d399 !important;
+}
+
+.el-tag--warning {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+.el-tag--danger {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #f87171 !important;
+}
+
+/* 修复JavaScript错误导致的白屏 */
+[v-cloak] {
+  display: none;
+}
+
+/* 确保所有元素都有透明背景以显示主题背景 */
+* {
+  background-color: transparent;
+}
+
+/* 错误提示样式 */
+.error-message {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border: 2px solid rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  margin: 16px !important;
+}

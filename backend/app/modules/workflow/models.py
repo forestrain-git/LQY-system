@@ -343,11 +343,9 @@ class WorkOrder(SQLModel, table=True):
     )
 
     # 关联设备 / Associated Equipment
-    # 注意: 外键暂时禁用，等待设备模块完成后添加
-    # Note: FK temporarily disabled until equipment module is ready
     equipment_id: int | None = Field(
         default=None,
-        # foreign_key="devices.id",  # 暂时禁用 / Temporarily disabled
+        foreign_key="equipment.id",
         description="关联设备ID / Associated equipment ID",
     )
 

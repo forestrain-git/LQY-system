@@ -55,6 +55,7 @@
 import { useRoute } from 'vue-router'
 import { useLayoutStore } from '@/stores/layout'
 import { useAlertsStore } from '@/stores/alerts'
+import { HomeFilled, Monitor, Bell, Setting, CircleCheck } from '@element-plus/icons-vue'
 
 const $route = useRoute()
 const layoutStore = useLayoutStore()

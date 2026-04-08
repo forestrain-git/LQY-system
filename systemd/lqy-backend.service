@@ -1,0 +1,17 @@
+[Unit]
+Description=龙泉驿环卫智能体 - 后端服务
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=lqy
+Group=lqy
+WorkingDirectory=/opt/lqy-system/backend
+Environment=PATH=/opt/lqy-system/backend/venv/bin
+EnvironmentFile=/opt/lqy-system/.env
+ExecStart=/opt/lqy-system/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

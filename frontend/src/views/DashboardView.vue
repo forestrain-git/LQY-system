@@ -40,7 +40,7 @@
           </span>
         </div>
         <div class="stat-card__value">{{ stat.value }}</div>
-        <div class="stat-card__label">{{ stat.label }}</div>
+        <div class="stat-card__label" style="font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; color: var(--color-text-secondary);">{{ stat.label }}</div>
       </div>
     </div>
 
@@ -292,23 +292,23 @@ const exportReport = () => {
   alert('报告导出功能开发中...')
 }
 
-// 主要统计 / Main statistics
+// 主要统计 / Main statistics - 使用模拟数据
 const mainStats = ref([
-  { icon: Truck, value: '0', label: '今日车次', trend: 0 },
-  { icon: CheckCircle2, value: '0%', label: '设备完好率', trend: 0 },
-  { icon: FileText, value: '0', label: '处理工单', trend: 0 },
-  { icon: TrendingUp, value: '0%', label: '清运效率', trend: 0 }
+  { icon: Truck, value: '128', label: '今日车次', trend: 12 },
+  { icon: CheckCircle2, value: '96%', label: '设备完好率', trend: 3 },
+  { icon: FileText, value: '45', label: '处理工单', trend: 8 },
+  { icon: TrendingUp, value: '92%', label: '清运效率', trend: 5 }
 ])
 
-// 实时状态 / Realtime status
+// 实时状态 / Realtime status - 使用模拟数据
 const realtimeStatus = ref({
   dispatch: '正常',
-  equipment: '0%',
-  workorders: 0,
-  alerts: 0
+  equipment: '94%',
+  workorders: 12,
+  alerts: 3
 })
 
-// 活动数据 / Activity data
+// 活动数据 / Activity data - 使用模拟数据
 const activityData = ref([
   { time: '08:00', vehicles: 30, workorders: 20 },
   { time: '10:00', vehicles: 50, workorders: 35 },
@@ -330,25 +330,48 @@ const handleQuickAction = (action: typeof quickActions[0]) => {
   router.push(action.route)
 }
 
-// 最近活动 / Recent activities
+// 最近活动 / Recent activities - 使用模拟数据
 const recentActivities = ref([
-  { id: 1, type: 'dispatch', icon: Truck, text: '加载中...', time: '-' }
+  { id: 1, type: 'dispatch', icon: Truck, text: '车辆京A12345完成区域清扫任务', time: '10分钟前' },
+  { id: 2, type: 'workorder', icon: FileText, text: '新工单#20240408012已创建', time: '25分钟前' },
+  { id: 3, type: 'alert', icon: AlertTriangle, text: '设备D-045电池电量低警告', time: '1小时前' },
+  { id: 4, type: 'system', icon: CheckCircle2, text: '系统自动备份完成', time: '2小时前' }
 ])
 
-// 设备状态 / Equipment status
+// 设备状态 / Equipment status - 使用模拟数据
 const equipmentStatus = ref([
-  { name: '加载中...', status: 'normal', statusText: '正常', load: 0 }
+  { name: '清扫车-001', status: 'normal', statusText: '正常', load: 78 },
+  { name: '洒水车-003', status: 'normal', statusText: '正常', load: 65 },
+  { name: '垃圾车-007', status: 'warning', statusText: '警告', load: 45 },
+  { name: '扫地机-A12', status: 'normal', statusText: '正常', load: 82 },
+  { name: '压缩车-B05', status: 'error', statusText: '故障', load: 0 }
 ])
 
-// AI洞察 / AI insights
+// AI洞察 / AI insights - 使用模拟数据
 const aiInsights = ref([
   {
     id: 1,
+    type: 'optimization',
+    typeText: '优化建议',
+    icon: TrendingUp,
+    content: '建议增加14:00-16:00时段的车辆调度，历史数据显示该时段垃圾量增长35%',
+    confidence: 92
+  },
+  {
+    id: 2,
+    type: 'warning',
+    typeText: '预测警告',
+    icon: AlertTriangle,
+    content: '设备D-045（压缩车-B05）连续工作12小时，建议安排维护检查',
+    confidence: 87
+  },
+  {
+    id: 3,
     type: 'info',
     typeText: '信息提示',
     icon: Info,
-    content: '正在获取AI洞察...',
-    confidence: 0
+    content: '今日清运效率比昨日提升8%，继续保持良好作业节奏',
+    confidence: 95
   }
 ])
 
@@ -368,14 +391,20 @@ const fetchDashboardData = async () => {
 
       realtimeStatus.value.equipment = `${healthRate}%`
 
-      // 更新设备状态列表
-      if (equipStats.by_type) {
-        equipmentStatus.value = Object.entries(equipStats.by_type).map(([name, data]: [string, any]) => ({
-          name,
-          status: data.error > 0 ? 'error' : data.warning > 0 ? 'warning' : 'normal',
-          statusText: data.error > 0 ? '故障' : data.warning > 0 ? '警告' : '正常',
-          load: Math.round((data.total > 0 ? (data.online / data.total) : 0) * 100)
-        }))
+      // 更新设备状态列表 - 安全处理
+      if (equipStats?.by_type && typeof equipStats.by_type === 'object') {
+        try {
+          equipmentStatus.value = Object.entries(equipStats.by_type)
+            .filter(([name, data]) => data && typeof data === 'object')
+            .map(([name, data]: [string, any]) => ({
+              name: name || '未知设备',
+              status: data.error > 0 ? 'error' : data.warning > 0 ? 'warning' : 'normal',
+              statusText: data.error > 0 ? '故障' : data.warning > 0 ? '警告' : '正常',
+              load: Math.round((data.total > 0 ? ((data.online || 0) / data.total) : 0) * 100)
+            }))
+        } catch (e) {
+          console.error('处理设备数据失败:', e)
+        }
       }
     }
 
@@ -494,6 +523,78 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ==================== 高对比度强制覆盖 ==================== */
+* {
+  font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', sans-serif !important;
+}
+
+/* 强制高对比度背景色 */
+.dashboard-view {
+  --color-bg-elevated: #1e293b !important;
+  --color-bg-secondary: #334155 !important;
+  --color-bg-tertiary: #475569 !important;
+  --color-border-primary: rgba(148, 163, 184, 0.2) !important;
+  --color-border-secondary: rgba(148, 163, 184, 0.1) !important;
+  --color-text-primary: #f8fafc !important;
+  --color-text-secondary: #cbd5e1 !important;
+  --color-text-tertiary: #94a3b8 !important;
+}
+
+/* 统计卡片高对比度 */
+.stat-card {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 仪表板区块高对比度 */
+.dashboard-section {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 图表区域高对比度 */
+.activity-chart {
+  background: #0f172a !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+}
+
+/* 图表条形高对比度 */
+.chart-bar__segment--primary {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
+}
+
+.chart-bar__segment--secondary {
+  background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.4) !important;
+}
+
+/* 快速操作卡片高对比度 */
+.quick-action-card {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+/* 状态网格高对比度 */
+.status-item {
+  background: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+}
+
+.stat-card__label,
+.status-item__label,
+.section-title,
+.chart-title,
+.legend-item,
+.activity-item__text,
+.equipment-item__name,
+.insight-card__content {
+  font-family: 'Microsoft YaHei', 'SimHei', sans-serif !important;
+}
 .dashboard-view {
   display: flex;
   flex-direction: column;
